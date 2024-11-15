@@ -1,0 +1,74 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #4B2F1A; /* Deep Brown */
+    margin: 0;
+}
+
+.container {
+    background-color: white;
+    padding: 80px; /* 기존 20px에서 30px로 패딩을 늘림 */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 40%; /* 기존 40%에서 50%로 너비를 늘림 */
+    text-align: center;
+}
+.question-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+input, button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box; /* 박스 크기 조정을 포함시켜 정확한 크기 맞춤 */
+}
+
+button {
+    background-color: #F5F5DC; /* Beige color for buttons */
+    color: black;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #E0E0C9;
+}
+
+button.previous {
+    width: 48%;
+    margin-right: 4%;
+}
+
+button.next {
+    width: 48%;
+    margin-left: 4%;
+}
+
+input[type="radio"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+.question-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.previous, .next {
+    margin-top:15px; /* 버튼 위쪽에 30px의 여백 추가 */
+}

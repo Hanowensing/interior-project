@@ -1,0 +1,122 @@
+body {
+    font-family: 'Noto Sans', Arial, sans-serif;
+    color: white;
+    background-color: #4B3D33;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+    max-width: 800px;
+}
+
+h2, p {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#inviteButton {
+    display: block;
+    margin: 20px auto; 
+    padding: 12px 24px;
+    font-size: 16px;
+    color: #4B2F1A; /* 글자 색을 브라운으로 설정 */
+    background: #F5F5DC; /* 버튼 배경을 베이지로 설정 */
+    font-weight: bold; /* 글자를 굵게 설정 */
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* 호버 효과 */
+#inviteButton:hover {
+    background: #E5E5CC; /* 살짝 진한 베이지 색으로 호버 시 강조 */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+#inviteButton:active {
+    transform: scale(0.98); /* 클릭 시 약간 작아지는 효과 */
+}
+
+/* 큰 텍스트 스타일 */
+.large-text {
+    font-size: 2rem; /* 제목 크기 */
+    font-weight: bold; /* 제목처럼 굵게 */
+    text-align: center; /* 가운데 정렬 */
+}
+
+/* 애니메이션을 위한 기본 스타일 */
+.animate {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+/* 화면에 보이면 'visible' 클래스를 추가하여 애니메이션 효과 */
+.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+h2 {
+    font-size: 2.5em; /* 제목 크기 설정 */
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* 부제목 스타일 */
+h2 + p {
+    font-size: 1.5em; /* 부제목 크기 설정 */
+    font-weight: semi-bold;
+    margin-bottom: 20px;
+}
+
+/* 본문 스타일 */
+p {
+    font-size: 1em; /* 본문 크기 설정 */
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.margin-bottom {
+    margin-bottom: 60px;  /* 여백을 원하는 만큼 설정 */
+}
+.margin-top {
+    margin-top: 75px;  /* 여백을 원하는 만큼 설정 */
+}
+
+.large-text {
+    font-size: 2rem; /* 제목 크기로 설정 */
+    font-weight: bold; /* 제목처럼 굵게 설정 */
+    text-align: center; /* 가운데 정렬 */
+}
+
+.color-options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 60px;  /* 버튼 그룹 아래에 40px 마진 추가 */
+}
+.color-btn {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #ffffff;  /* 흰색 테두리 추가 */
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;  /* 버튼 간 간격 */
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
