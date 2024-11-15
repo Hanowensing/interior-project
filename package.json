@@ -2,7 +2,7 @@
   "name": "survey-project",
   "version": "1.0.0",
   "description": "Survey project for collecting responses",
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"
   },
