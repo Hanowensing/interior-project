@@ -1,38 +1,27 @@
-let currentQuestionIndex = 0;
+let currentQuestionIndex = 0;  // 현재 질문 인덱스
+const answers = {};  // 사용자가 입력한 답을 저장할 객체
+
+// 설문 문항
 const questions = [
     { type: "text", question: "당신의 집을 알려주세요" },
     { type: "radio", question: "성별을 알려주세요:", options: ["남", "여"] },
     { type: "radio", question: "나이를 알려주세요:", options: ["10대 미만", "10대", "20대", "30대", "40대", "50대", "60대", "70대 이상"] },
-    {
-        type: "radio",
-        question: "좋아하는 색을 알려주세요:",
+    { 
+        type: "radio", 
+        question: "좋아하는 색을 알려주세요:", 
         options: [
-            { name: "베이지", color: "#F5F5DC" },  // Beige color
-            { name: "네이비", color: "#000080" },  // Navy color
-            { name: "블랙", color: "#000000" },   // Black color
-            { name: "딥 브라운", color: "#4B2F1A" }, // Deep brown
+            { name: "베이지", color: "#F5F5DC" },
+            { name: "네이비", color: "#000080" },
+            { name: "블랙", color: "#000000" },
+            { name: "딥 브라운", color: "#4B2F1A" },
             { name: "연한 하늘색", color: "#87CEEB" }
-        ]
+        ] 
     },
-    { type: "radio", question: "예산을 알려주세요:", options: ["5만원", "10만원", "15만원", "20만원", "50만원", "100만원"] }
+    { type: "radio", question: "예산을 알려주세요:", options: ["5만원", "10만원", "15만원", "20만원", "50만원", "100만원"] },
+    { type: "text", question: "제출하시겠습니까?" } // 마지막 질문
 ];
 
-function nextQuestion() {
-    if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex++;
-        displayQuestion();
-    } else {
-        window.location.href = "complete.html"; // 마지막 질문이 끝나면 complete.html로 이동
-    }
-}
-
-function previousQuestion() {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        displayQuestion();
-    }
-}
-
+// 질문 표시 함수
 function displayQuestion() {
     const currentQuestion = questions[currentQuestionIndex];
     const questionContainer = document.getElementById("question-container");
@@ -43,11 +32,15 @@ function displayQuestion() {
     questionText.innerText = currentQuestion.question;
     questionContainer.appendChild(questionText);
 
-    if (currentQuestion.type === "text") {
+    // 텍스트 입력 필드
+    if (currentQuestion.type === "text" && currentQuestionIndex !== questions.length - 1) {
         const input = document.createElement("input");
         input.type = "text";
         input.id = "answer";
         input.placeholder = "답변을 입력하세요";
+        input.addEventListener('input', (event) => {
+            answers[currentQuestion.question] = event.target.value;
+        });
         questionContainer.appendChild(input);
     } else if (currentQuestion.type === "radio") {
         currentQuestion.options.forEach(option => {
@@ -56,18 +49,17 @@ function displayQuestion() {
 
             // 색상 질문인 경우
             if (typeof option === 'object') {
-                displayText = option.name;  // 색상 이름 표시
+                displayText = option.name;
                 const radio = document.createElement("input");
                 radio.type = "radio";
                 radio.name = currentQuestion.question;
                 radio.value = option.name;
 
-                // 색상 박스를 생성하고 클릭 시 배경색을 변경
                 radio.onclick = function() {
+                    answers[currentQuestion.question] = option.name;
                     document.body.style.backgroundColor = option.color; // 배경색 변경
                 };
 
-                // 색상 박스와 라디오 버튼 및 텍스트를 수평으로 배치
                 const colorBox = document.createElement("div");
                 colorBox.style.backgroundColor = option.color;
                 colorBox.style.width = "30px";
@@ -81,13 +73,15 @@ function displayQuestion() {
                 questionContainer.appendChild(label);
                 questionContainer.appendChild(document.createElement("br"));
             } else {
-                // 일반적인 보기 질문 처리
                 const radio = document.createElement("input");
                 radio.type = "radio";
                 radio.name = currentQuestion.question;
                 radio.value = option;
 
-                label.innerText = option; // 텍스트 값
+                label.innerText = option;
+                radio.onclick = function() {
+                    answers[currentQuestion.question] = option;
+                };
                 questionContainer.appendChild(radio);
                 questionContainer.appendChild(label);
                 questionContainer.appendChild(document.createElement("br"));
@@ -95,22 +89,77 @@ function displayQuestion() {
         });
     }
 
-    const buttonsContainer = document.createElement("div");
-    buttonsContainer.classList.add("buttons-container");
+    // 마지막 질문일 경우 제출 버튼만 표시
+    if (currentQuestionIndex === questions.length - 1) {
+        const submitButton = document.createElement("button");
+        submitButton.classList.add("submit");
+        submitButton.innerText = "제출하기";
+        submitButton.onclick = function() {
+            saveAnswers();
+            window.location.href = "complete.html"; // 설문 완료 후 페이지 이동
+        };
+        questionContainer.appendChild(submitButton);
+    } else {
+        // 이전/다음 버튼 표시
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.classList.add("buttons-container");
 
-    const previousButton = document.createElement("button");
-    previousButton.classList.add("previous");
-    previousButton.innerText = "이전";
-    previousButton.onclick = previousQuestion;
-    buttonsContainer.appendChild(previousButton);
+        const previousButton = document.createElement("button");
+        previousButton.classList.add("previous");
+        previousButton.innerText = "이전";
+        previousButton.onclick = previousQuestion;
+        buttonsContainer.appendChild(previousButton);
 
-    const nextButton = document.createElement("button");
-    nextButton.classList.add("next");
-    nextButton.innerText = "다음";
-    nextButton.onclick = nextQuestion;
-    buttonsContainer.appendChild(nextButton);
+        const nextButton = document.createElement("button");
+        nextButton.classList.add("next");
+        nextButton.innerText = "다음";
+        nextButton.onclick = nextQuestion;
+        buttonsContainer.appendChild(nextButton);
 
-    questionContainer.appendChild(buttonsContainer);
+        questionContainer.appendChild(buttonsContainer);
+    }
 }
 
+// '다음' 버튼 클릭 시 호출
+function nextQuestion() {
+    if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        displayQuestion();
+    }
+}
+
+// '이전' 버튼 클릭 시 호출
+function previousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        displayQuestion();
+    }
+}
+
+// 제출된 답변을 서버로 전송하는 함수
+function submitAnswers() {
+    fetch('/submit-survey', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(answers) // 설문 답변 객체
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('답변이 제출되었습니다!');
+        window.location.href = "complete.html";  // 설문 완료 후 페이지 이동
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('서버와의 연결에 문제가 발생했습니다.');
+    });
+}
+
+// "제출하기" 버튼 클릭 시 호출되는 함수
+function saveAnswers() {
+    submitAnswers();
+}
+
+// 페이지 로드 시 첫 번째 질문 표시
 document.addEventListener("DOMContentLoaded", displayQuestion);
