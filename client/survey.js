@@ -96,7 +96,7 @@ function displayQuestion() {
         submitButton.innerText = "제출하기";
         submitButton.onclick = function() {
             saveAnswers();
-            window.location.href = "complete.html"; // 설문 완료 후 페이지 이동
+            window.location.href = "Complete.html"; // 설문 완료 후 페이지 이동
         };
         questionContainer.appendChild(submitButton);
     } else {
@@ -148,7 +148,7 @@ function submitAnswers() {
     .then(response => response.json())
     .then(data => {
         alert('답변이 제출되었습니다!');
-        window.location.href = "complete.html";  // 설문 완료 후 페이지 이동
+        window.location.href = "Complete.html";  // 설문 완료 후 페이지 이동
     })
     .catch(error => {
         console.error('Error:', error);
