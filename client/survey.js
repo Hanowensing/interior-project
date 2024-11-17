@@ -91,14 +91,19 @@ function displayQuestion() {
 
     // 마지막 질문일 경우 제출 버튼만 표시
     if (currentQuestionIndex === questions.length - 1) {
-        const submitButton = document.createElement("button");
-        submitButton.classList.add("submit");
-        submitButton.innerText = "제출하기";
-        submitButton.onclick = function() {
-            saveAnswers();
-            window.location.href = "Complete.html"; // 설문 완료 후 페이지 이동
-        };
-        questionContainer.appendChild(submitButton);
+       const submitButton = document.createElement("button");
+submitButton.classList.add("submit");
+submitButton.innerText = "제출하기";
+
+// '제출하기' 버튼 클릭 시 호출되는 함수
+submitButton.onclick = function() {
+    // saveAnswers() 호출해서 로컬스토리지에 응답을 저장
+    saveAnswers();
+    
+    // 페이지를 Complete.html로 이동
+    window.location.href = "Complete.html"; // 설문 완료 후 페이지 이동
+};
+questionContainer.appendChild(submitButton);
     } else {
         // 이전/다음 버튼 표시
         const buttonsContainer = document.createElement("div");
@@ -136,31 +141,24 @@ function previousQuestion() {
     }
 }
 
-// 제출된 답변을 서버로 전송하는 함수
-function submitAnswers() {
-    fetch('/submit-survey', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(answers) // 설문 답변 객체
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert('답변이 제출되었습니다!');
-        window.location.href = "Complete.html";  // 설문 완료 후 페이지 이동
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('서버와의 연결에 문제가 발생했습니다.');
-    });
-}
-
-// "제출하기" 버튼 클릭 시 호출되는 함수
+// 제출된 답변을 로컬스토리지에 누적하여 저장하는 함수
 function saveAnswers() {
-    localStorage.setItem('surveyAnswers', JSON.stringify(answers)); // 로컬 스토리지에 설문 답변 저장
-    submitAnswers(); // 서버로 데이터 전송 (서버가 필요한 경우)
-    window.location.href = "Complete.html";  // 설문 완료 후 페이지 이동
+    // 로컬스토리지에서 기존 응답 불러오기, 없으면 빈 배열로 초기화
+    let savedResponses = JSON.parse(localStorage.getItem('surveyAnswers'));
+
+    // 만약 savedResponses가 배열이 아니면 빈 배열로 초기화
+    if (!Array.isArray(savedResponses)) {
+        savedResponses = [];
+    }
+
+    // 새로운 응답을 배열에 추가
+    savedResponses.push(answers);
+    
+    // 배열을 로컬스토리지에 저장
+    localStorage.setItem('surveyAnswers', JSON.stringify(savedResponses));
+
+    // 데이터가 저장된 후 페이지 이동
+    window.location.href = "Complete.html";
 }
 
 // 페이지 로드 시 첫 번째 질문 표시
