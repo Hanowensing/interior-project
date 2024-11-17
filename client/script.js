@@ -17,6 +17,7 @@ function animateOnScroll() {
 window.addEventListener('scroll', animateOnScroll);
 window.addEventListener('load', animateOnScroll);
 
+// 색상 변경 이벤트
 document.getElementById("darkGray").addEventListener("click", function() {
     document.body.style.backgroundColor = "#2E2E2E"; // 다크 그레이 색상
 });
@@ -36,4 +37,9 @@ document.getElementById("navy").addEventListener("click", function() {
 // 마지막 색상을 #4B3D33으로 변경
 document.getElementById("deepBrown").addEventListener("click", function() {
     document.body.style.backgroundColor = "#4B2F1A"; // 기존 색상 딥 브라운으로 설정
+});
+
+// 관리자 페이지로 이동하는 버튼 이벤트 추가
+document.getElementById("adminButton").addEventListener("click", function() {
+    location.href = 'admin.html'; // 관리자 페이지로 이동
 });

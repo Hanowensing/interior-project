@@ -24,7 +24,8 @@ h2, p {
     transform: translateY(0);
 }
 
-#inviteButton {
+/* 동일한 스타일을 적용할 버튼 */
+#adminButton, #inviteButton {
     display: block;
     margin: 20px auto; 
     padding: 12px 24px;
@@ -33,20 +34,27 @@ h2, p {
     background: #F5F5DC; /* 버튼 배경을 베이지로 설정 */
     font-weight: bold; /* 글자를 굵게 설정 */
     border: none;
-    border-radius: 25px;
+    border-radius: 25px;  /* 원형 버튼을 유지하려면 여기에 맞는 border-radius 적용 */
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
 }
 
 /* 호버 효과 */
-#inviteButton:hover {
+#adminButton:hover, #inviteButton:hover {
     background: #E5E5CC; /* 살짝 진한 베이지 색으로 호버 시 강조 */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-#inviteButton:active {
+#adminButton:active, #inviteButton:active {
     transform: scale(0.98); /* 클릭 시 약간 작아지는 효과 */
+}
+
+/* 관리자 페이지 버튼 위치: 오른쪽 상단에 고정 */
+#adminButton {
+    position: fixed;  /* 화면에 고정 */
+    top: 20px;        /* 화면 상단에서 20px */
+    right: 40px;      /* 화면 오른쪽에서 20px */
 }
 
 /* 큰 텍스트 스타일 */
@@ -120,3 +128,4 @@ p {
 .color-btn:hover {
     transform: scale(1.1);
 }
+

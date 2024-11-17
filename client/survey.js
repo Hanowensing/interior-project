@@ -158,7 +158,9 @@ function submitAnswers() {
 
 // "제출하기" 버튼 클릭 시 호출되는 함수
 function saveAnswers() {
-    submitAnswers();
+    localStorage.setItem('surveyAnswers', JSON.stringify(answers)); // 로컬 스토리지에 설문 답변 저장
+    submitAnswers(); // 서버로 데이터 전송 (서버가 필요한 경우)
+    window.location.href = "Complete.html";  // 설문 완료 후 페이지 이동
 }
 
 // 페이지 로드 시 첫 번째 질문 표시
