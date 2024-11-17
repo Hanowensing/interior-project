@@ -29,70 +29,39 @@ if (!fs.existsSync(responsesFile)) {
 
 // 기본 라우트 (서버 상태 확인용)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client', 'survey.html'));
+    res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
 
 // 설문 응답 저장 API
-app.post('/submit-survey', (req, res) => {
-    const response = req.body;
+app.post('/submit-survey', async (req, res) => {
+    const response = req.body;  // 클라이언트에서 보낸 설문 응답
 
-    // 저장된 응답 읽기
-    let responses = [];
+    // Supabase에 데이터 삽입
     try {
-        const data = fs.readFileSync(responsesFile, 'utf8');
-        responses = JSON.parse(data);
+        const { data, error } = await supabase
+            .from('survey_responses')  // 'survey_responses' 테이블 이름 확인
+            .insert([response]);  // 설문 데이터를 배열로 전달
+
+        if (error) {
+            console.error('Error saving to Supabase:', error.message);
+            return res.status(500).json({
+                message: 'Failed to save response to Supabase',
+                error: error.message
+            });
+        }
+
+        console.log('Response saved to Supabase:', data);
+        res.status(200).json({ message: 'Survey response saved successfully!', data: data });
     } catch (error) {
-        console.error('Error reading responses file:', error);
+        console.error('Unexpected error:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-
-    // 새로운 응답 추가
-    responses.push(response);
-
-    // 파일에 저장
-    try {
-        fs.writeFileSync(responsesFile, JSON.stringify(responses, null, 2), 'utf8');
-        console.log('New response saved:', response);
-        res.status(200).send({ message: 'Survey response saved successfully!' });
-    } catch (error) {
-        console.error('Error writing responses file:', error);
-        res.status(500).send({ message: 'Failed to save response.' });
-    }
-});
-
-// 설문 완료 후 페이지 제공
-app.get('/complete.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client', 'complete.html'));
 });
 
 // 서버 실행
-app.listen(port, async () => {
-    console.log(`Server is running at http://localhost:${port}`);
-    await saveResponsesToSupabase();  // 서버 시작 시 응답을 Supabase에 저장
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
 
-// 응답을 Supabase에 저장하는 함수
-async function saveResponsesToSupabase() {
-    const responses = JSON.parse(fs.readFileSync(responsesFile, 'utf8'));
-
-    // 응답 데이터를 Supabase 테이블에 맞게 변환
-    const transformedResponses = responses.map(response => ({
-        house: response["당신의 집을 알려주세요"],  // 이름 대신 house 필드로 변환
-        gender: response["성별을 알려주세요:"],    // "성별을 알려주세요:" -> "gender"
-        age: response["나이를 알려주세요:"],      // "나이를 알려주세요:" -> "age"
-        favorite_color: response["좋아하는 색을 알려주세요:"], // "좋아하는 색을 알려주세요:" -> "favorite_color"
-        budget: response["예산을 알려주세요:"],    // "예산을 알려주세요:" -> "budget"
-    }));
-
-    // 변환된 응답 데이터 삽입
-    for (const response of transformedResponses) {
-        const { data, error } = await supabase
-            .from('survey_responses')
-            .insert([response]);
-
-        if (error) {
-            console.error('Error saving response to Supabase:', error);
-        } else {
-            console.log('Response saved to Supabase:', data);
-        }
-    }
-}
+const cors = require('cors');
+app.use(cors());  // 모든 도메인에서의 요청을 허용

@@ -91,19 +91,16 @@ function displayQuestion() {
 
     // 마지막 질문일 경우 제출 버튼만 표시
     if (currentQuestionIndex === questions.length - 1) {
-       const submitButton = document.createElement("button");
-submitButton.classList.add("submit");
-submitButton.innerText = "제출하기";
+        const submitButton = document.createElement("button");
+        submitButton.classList.add("submit");
+        submitButton.innerText = "제출하기";
 
-// '제출하기' 버튼 클릭 시 호출되는 함수
-submitButton.onclick = function() {
-    // saveAnswers() 호출해서 로컬스토리지에 응답을 저장
-    saveAnswers();
-    
-    // 페이지를 Complete.html로 이동
-    window.location.href = "Complete.html"; // 설문 완료 후 페이지 이동
-};
-questionContainer.appendChild(submitButton);
+        // '제출하기' 버튼 클릭 시 호출되는 함수
+        submitButton.onclick = function() {
+            saveAnswers();  // 응답 저장 함수 호출
+            window.location.href = "Complete.html"; // 설문 완료 후 페이지 이동
+        };
+        questionContainer.appendChild(submitButton);
     } else {
         // 이전/다음 버튼 표시
         const buttonsContainer = document.createElement("div");
@@ -118,7 +115,7 @@ questionContainer.appendChild(submitButton);
         const nextButton = document.createElement("button");
         nextButton.classList.add("next");
         nextButton.innerText = "다음";
-        nextButton.onclick = nextQuestion;
+        nextButton.onclick = nextQuestion; // nextQuestion 함수 연결
         buttonsContainer.appendChild(nextButton);
 
         questionContainer.appendChild(buttonsContainer);
@@ -141,24 +138,46 @@ function previousQuestion() {
     }
 }
 
-// 제출된 답변을 로컬스토리지에 누적하여 저장하는 함수
-function saveAnswers() {
-    // 로컬스토리지에서 기존 응답 불러오기, 없으면 빈 배열로 초기화
-    let savedResponses = JSON.parse(localStorage.getItem('surveyAnswers'));
-
-    // 만약 savedResponses가 배열이 아니면 빈 배열로 초기화
-    if (!Array.isArray(savedResponses)) {
-        savedResponses = [];
-    }
-
-    // 새로운 응답을 배열에 추가
+// 제출된 답변을 로컬스토리지와 Supabase에 저장하는 함수
+async function saveAnswers() {
+    let savedResponses = JSON.parse(localStorage.getItem('surveyAnswers')) || [];
     savedResponses.push(answers);
-    
-    // 배열을 로컬스토리지에 저장
     localStorage.setItem('surveyAnswers', JSON.stringify(savedResponses));
 
-    // 데이터가 저장된 후 페이지 이동
-    window.location.href = "Complete.html";
+    // 각 질문에 대한 매핑을 정의
+    const fieldMapping = {
+        "당신의 집을 알려주세요": "house",
+        "성별을 알려주세요:": "gender",
+        "나이를 알려주세요:": "age",
+        "좋아하는 색을 알려주세요:": "favorite_color",
+        "예산을 알려주세요:": "budget",
+        "제출하시겠습니까?": "submitted"
+    };
+
+    // 각 질문에 대해 매핑된 필드로 변환
+    const mappedAnswers = {};
+    for (let question in answers) {
+        const mappedKey = fieldMapping[question] || question; // 매핑된 키가 없으면 원래 키 사용
+        mappedAnswers[mappedKey] = answers[question];
+    }
+
+    // Supabase에 응답 저장
+    try {
+        const response = await fetch('/submit-survey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mappedAnswers)  // 매핑된 데이터로 Supabase에 전달
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            console.log('응답이 Supabase에 저장되었습니다:', result.data);
+        } else {
+            console.error('Supabase에 저장 실패:', result.message);
+        }
+    } catch (error) {
+        console.error('서버 오류:', error);
+    }
 }
 
 // 페이지 로드 시 첫 번째 질문 표시
