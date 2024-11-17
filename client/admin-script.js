@@ -6,7 +6,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     const password = document.getElementById('password').value;
 
     // 로그인 정보 확인
-    if (username === 'hhj1627' && password === 'han003400!') {
+    if (username === '1terior' && password === 'ilove1terior') {
         // 로그인 성공 시, admin2.html로 이동
         window.location.href = 'admin2.html'; // admin2.html로 리디렉션
     } else {
