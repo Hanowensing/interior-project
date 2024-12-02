@@ -1,35 +1,43 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const { db } = require('replit');  // Replit DB 사용
-const cors = require('cors');  // CORS 모듈
+async function saveAnswers() {
+    let savedResponses = JSON.parse(localStorage.getItem('surveyAnswers')) || [];
+    savedResponses.push(answers);
+    localStorage.setItem('surveyAnswers', JSON.stringify(savedResponses));
 
-const app = express();
-const port = process.env.PORT || 3000;
+    // 각 질문에 대한 매핑을 정의
+    const fieldMapping = {
+        "당신의 집을 알려주세요": "house",
+        "성별을 알려주세요:": "gender",
+        "나이를 알려주세요:": "age",
+        "좋아하는 색을 알려주세요:": "favorite_color",
+        "예산을 알려주세요:": "budget",
+        "제출하시겠습니까?": "submitted"
+    };
 
-// CORS 설정: 모든 도메인에서의 요청을 허용
-app.use(cors());
-
-// JSON 요청 파싱 설정
-app.use(bodyParser.json());
-
-// 설문 응답 저장 API
-app.post('/submit-survey', async (req, res) => {
-    const response = req.body;  // 클라이언트에서 보낸 설문 응답
-
-    // Replit DB에 설문 응답 저장
-    try {
-        const currentResponses = await db.get('survey_responses') || [];  // 기존 응답을 가져오고 없으면 빈 배열로 초기화
-        currentResponses.push(response);  // 새 응답 추가
-
-        await db.set('survey_responses', currentResponses);  // Replit DB에 저장
-
-        console.log('Response saved to Replit DB:', response);
-        res.status(200).json({ message: 'Survey response saved successfully!', data: response });
-    } catch (error) {
-        console.error('Unexpected error:', error);
-        res.status(500).json({ message: 'Internal server error', error: error.message });
+    // 질문을 매핑된 키로 변환
+    const mappedAnswers = {};
+    for (let question in answers) {
+        const mappedKey = fieldMapping[question] || question;
+        mappedAnswers[mappedKey] = answers[question];
     }
-});
+
+    // 설문 데이터 서버로 전송
+    try {
+        const response = await fetch('/submit-survey', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mappedAnswers),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('응답이 성공적으로 저장되었습니다:', result);
+        } else {
+            console.error('서버 오류:', await response.text());
+        }
+    } catch (error) {
+        console.error('네트워크 오류:', error);
+    }
+}
 
 // 설문 응답 조회 API
 app.get('/survey-responses', async (req, res) => {
