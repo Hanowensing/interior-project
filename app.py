@@ -2,9 +2,17 @@ from flask import Flask, render_template, request, jsonify
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
-from replit import db  # Replit DB 사용을 위한 임포트
+import psycopg2  # PostgreSQL 연결 라이브러리
+from psycopg2.extras import RealDictCursor
+import os
 
 app = Flask(__name__, static_folder='static')
+
+# PostgreSQL 연결 설정
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode='require', cursor_factory=RealDictCursor)
 
 # 샘플 데이터 (질문에 대한 답변과 인테리어 스타일)
 data = [
@@ -76,8 +84,19 @@ def predict():
         prediction = knn.predict([answers])
         print(f"Prediction result: {prediction[0]}")  # 예측된 스타일 출력
 
-        # 예측 결과를 Replit DB에 저장
-        db["last_prediction"] = prediction[0]  # 예측 결과 저장
+        # 예측 결과를 PostgreSQL에 저장
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            INSERT INTO predictions (personality, preference, budget, appliances, style)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (personality, preference, budget, appliances, prediction[0])
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
 
         # 예측 결과 반환
         return jsonify({'style': prediction[0]})
@@ -88,9 +107,23 @@ def predict():
 
 @app.route('/get_last_prediction', methods=['GET'])
 def get_last_prediction():
-    # Replit DB에서 마지막 예측 결과를 가져옴
-    last_prediction = db.get("last_prediction", "없음")
-    return jsonify({'last_prediction': last_prediction})
+    try:
+        # PostgreSQL에서 마지막 예측 결과를 가져옴
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM predictions ORDER BY id DESC LIMIT 1")
+        last_prediction = cursor.fetchone()
+        cursor.close()
+        connection.close()
+
+        if last_prediction:
+            return jsonify({'last_prediction': last_prediction})
+        else:
+            return jsonify({'last_prediction': '없음'})
+
+    except Exception as e:
+        print(f"Error occurred while fetching last prediction: {e}")
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True)
