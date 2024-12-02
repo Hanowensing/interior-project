@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const cors = require('cors');  // CORS 모듈을 임포트
+const cors = require('cors');
 
 // Supabase 연결
 const supabaseUrl = 'https://novdkgavamxornckjcjm.supabase.co';  // Supabase URL
@@ -12,6 +14,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // 서버 설정
 const app = express();
 const port = 3000;
+
+// CORS 설정: 모든 도메인에서의 요청을 허용
+app.use(cors({
+  origin: '*',  // 모든 도메인에서 접근 허용
+}));
 
 // 정적 파일 제공 (client 폴더 내 HTML, CSS, JS 파일 등)
 app.use(express.static(path.join(__dirname, '../client')));
@@ -63,5 +70,4 @@ app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
 
-const cors = require('cors');
-app.use(cors());  // 모든 도메인에서의 요청을 허용
+
