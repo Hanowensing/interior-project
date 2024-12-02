@@ -3,28 +3,25 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
-const cors = require('cors');  // CORS 모듈을 임포트
-const cors = require('cors');
+const cors = require('cors');  // CORS 모듈을 한 번만 임포트
 
 // Supabase 연결
 const supabaseUrl = 'https://novdkgavamxornckjcjm.supabase.co';  // Supabase URL
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vdmRrZ2F2YW14b3JuY2tqY2ptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4MzcwMjIsImV4cCI6MjA0NzQxMzAyMn0.sCmU9tJ-NA4Y-nd6q9TYu4chqLFX1EP2ssqb4xRhJ7E';  // Supabase API 키
+const supabaseKey = 'your-supabase-api-key';  // Supabase API 키
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 서버 설정
 const app = express();
 const port = 3000;
 
-// CORS 설정: 모든 도메인에서의 요청을 허용
-app.use(cors({
-  origin: '*',  // 모든 도메인에서 접근 허용
-}));
-
 // 정적 파일 제공 (client 폴더 내 HTML, CSS, JS 파일 등)
 app.use(express.static(path.join(__dirname, '../client')));
 
 // JSON 요청 파싱 설정
 app.use(bodyParser.json());
+
+// CORS 설정: 모든 도메인에서의 요청을 허용
+app.use(cors());
 
 // 응답 저장 파일 경로 설정
 const responsesFile = path.join(__dirname, 'responses.json');
@@ -69,5 +66,3 @@ app.post('/submit-survey', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
-
-
