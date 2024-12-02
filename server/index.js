@@ -2,13 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
+const { db } = require('replit');  // Replit DB 사용
 const cors = require('cors');  // CORS 모듈을 한 번만 임포트
-
-// Supabase 연결
-const supabaseUrl = 'https://novdkgavamxornckjcjm.supabase.co';  // Supabase URL
-const supabaseKey = 'your-supabase-api-key';  // Supabase API 키
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 서버 설정
 const app = express();
@@ -40,22 +35,16 @@ app.get('/', (req, res) => {
 app.post('/submit-survey', async (req, res) => {
     const response = req.body;  // 클라이언트에서 보낸 설문 응답
 
-    // Supabase에 데이터 삽입
+    // Replit DB에 설문 응답 저장
     try {
-        const { data, error } = await supabase
-            .from('survey_responses')  // 'survey_responses' 테이블 이름 확인
-            .insert([response]);  // 설문 데이터를 배열로 전달
+        // 응답을 'survey_responses'라는 키로 저장 (중복 방지를 위해 유니크한 키를 사용할 수도 있음)
+        const currentResponses = await db.get('survey_responses') || [];  // 기존 응답을 가져오고 없으면 빈 배열로 초기화
+        currentResponses.push(response);  // 새 응답 추가
 
-        if (error) {
-            console.error('Error saving to Supabase:', error.message);
-            return res.status(500).json({
-                message: 'Failed to save response to Supabase',
-                error: error.message
-            });
-        }
+        await db.set('survey_responses', currentResponses);  // Replit DB에 저장
 
-        console.log('Response saved to Supabase:', data);
-        res.status(200).json({ message: 'Survey response saved successfully!', data: data });
+        console.log('Response saved to Replit DB:', response);
+        res.status(200).json({ message: 'Survey response saved successfully!', data: response });
     } catch (error) {
         console.error('Unexpected error:', error);
         res.status(500).json({ message: 'Internal server error', error: error.message });
