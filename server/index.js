@@ -1,41 +1,63 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg'); // PostgreSQL 클라이언트
-require('dotenv').config(); // 환경 변수 로드
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
 const app = express();
 app.use(bodyParser.json());
 
-// PostgreSQL 연결 설정
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // 환경 변수로 설정된 DB URL
-    ssl: {
-        rejectUnauthorized: false, // SSL 인증 무시 (Render에서 필요)
-    },
-});
+const supabaseUrl = process.env.SUPABASE_URL; // 환경 변수에서 Supabase URL 가져오기
+const supabaseKey = process.env.SUPABASE_KEY; // 환경 변수에서 Supabase 키 가져오기
 
-// POST 요청을 처리하여 설문 데이터 저장
+// Supabase 클라이언트 생성
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// 데이터 삽입 테스트 함수
+async function insertSurveyResponse() {
+    const { data, error } = await supabase
+        .from('survey_responses') // 테이블 이름
+        .insert([{
+            house: '아파트',
+            gender: '남성',
+            age: 30,
+            favorite_color: '파랑',
+            budget: 1000000,
+        }]);
+
+    if (error) {
+        console.error('Error inserting data:', error);
+    } else {
+        console.log('Data inserted successfully:', data);
+    }
+}
+
+// 함수 호출
+insertSurveyResponse();
+
+// 설문 응답 데이터 삽입 API
 app.post('/submit-survey', async (req, res) => {
     const answers = req.body;
 
     try {
-        // DB에 데이터 삽입
-        await pool.query(
-            `INSERT INTO survey_responses (house, gender, age, favorite_color, budget, submitted)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            [
-                answers.house,
-                answers.gender,
-                answers.age,
-                answers.favorite_color,
-                answers.budget,
-                answers.submitted,
-            ]
-        );
-        res.status(200).send({ message: 'Data saved successfully!' });
+        const { data, error } = await supabase
+            .from('survey_responses')
+            .insert([{
+                house: answers.house,
+                gender: answers.gender,
+                age: answers.age,
+                favorite_color: answers.favorite_color,
+                budget: answers.budget,
+            }]);
+
+        if (error) {
+            console.error('Error inserting data:', error);
+            return res.status(500).send({ message: 'Database insert error!' });
+        }
+
+        res.status(200).send({ message: 'Data saved successfully!', data });
     } catch (err) {
-        console.error('Database insert error:', err);
-        res.status(500).send({ message: 'Database error!' });
+        console.error('Unexpected error:', err);
+        res.status(500).send({ message: 'Server error!' });
     }
 });
 

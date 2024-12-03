@@ -1,18 +1,17 @@
 from flask import Flask, render_template, request, jsonify
+from supabase import create_client, Client
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler
-import psycopg2  # PostgreSQL 연결 라이브러리
-from psycopg2.extras import RealDictCursor
 import os
 
 app = Flask(__name__, static_folder='static')
 
-# PostgreSQL 연결 설정
-DATABASE_URL = os.getenv('DATABASE_URL')
+# Supabase 연결 설정
+SUPABASE_URL = os.getenv("SUPABASE_URL")  # 환경 변수에서 Supabase URL을 가져옵니다.
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # 환경 변수에서 Supabase 키를 가져옵니다.
 
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode='require', cursor_factory=RealDictCursor)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # 샘플 데이터 (질문에 대한 답변과 인테리어 스타일)
 data = [
@@ -84,19 +83,19 @@ def predict():
         prediction = knn.predict([answers])
         print(f"Prediction result: {prediction[0]}")  # 예측된 스타일 출력
 
-        # 예측 결과를 PostgreSQL에 저장
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        cursor.execute(
-            """
-            INSERT INTO predictions (personality, preference, budget, appliances, style)
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            (personality, preference, budget, appliances, prediction[0])
-        )
-        connection.commit()
-        cursor.close()
-        connection.close()
+        # 예측 결과를 Supabase에 저장
+        response = supabase.table("predictions").insert({
+            "personality": personality,
+            "preference": preference,
+            "budget": budget,
+            "appliances": appliances,
+            "style": prediction[0]
+        }).execute()
+
+        if response.get("status_code") == 201:
+            print("Prediction saved to Supabase.")
+        else:
+            print("Error saving prediction:", response)
 
         # 예측 결과 반환
         return jsonify({'style': prediction[0]})
@@ -108,16 +107,12 @@ def predict():
 @app.route('/get_last_prediction', methods=['GET'])
 def get_last_prediction():
     try:
-        # PostgreSQL에서 마지막 예측 결과를 가져옴
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM predictions ORDER BY id DESC LIMIT 1")
-        last_prediction = cursor.fetchone()
-        cursor.close()
-        connection.close()
+        # Supabase에서 마지막 예측 결과를 가져옴
+        response = supabase.table("predictions").select("*").order("id", desc=True).limit(1).execute()
+        last_prediction = response.get("data")
 
         if last_prediction:
-            return jsonify({'last_prediction': last_prediction})
+            return jsonify({'last_prediction': last_prediction[0]})
         else:
             return jsonify({'last_prediction': '없음'})
 

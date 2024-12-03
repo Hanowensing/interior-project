@@ -1,9 +1,10 @@
 async function saveAnswers() {
+    // 기존 응답 데이터를 Local Storage에서 가져옴
     let savedResponses = JSON.parse(localStorage.getItem('surveyAnswers')) || [];
-    savedResponses.push(answers);
-    localStorage.setItem('surveyAnswers', JSON.stringify(savedResponses));
+    savedResponses.push(answers); // 새로운 응답 추가
+    localStorage.setItem('surveyAnswers', JSON.stringify(savedResponses)); // Local Storage에 저장
 
-    // 각 질문에 대한 매핑을 정의
+    // 질문-필드 매핑 정의
     const fieldMapping = {
         "당신의 집을 알려주세요": "house",
         "성별을 알려주세요:": "gender",
@@ -13,14 +14,14 @@ async function saveAnswers() {
         "제출하시겠습니까?": "submitted"
     };
 
-    // 질문을 매핑된 키로 변환
+    // 매핑된 키로 데이터 변환
     const mappedAnswers = {};
     for (let question in answers) {
-        const mappedKey = fieldMapping[question] || question;
+        const mappedKey = fieldMapping[question] || question; // 매핑되지 않은 키는 그대로 사용
         mappedAnswers[mappedKey] = answers[question];
     }
 
-    // 설문 데이터 서버로 전송
+    // Supabase로 데이터 전송
     try {
         const response = await fetch('https://interior-projecs.onrender.com/submit-survey', {
             method: 'POST',
