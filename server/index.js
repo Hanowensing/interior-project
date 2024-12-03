@@ -6,16 +6,34 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(bodyParser.json());
 
+// 클라이언트 파일 서빙
+app.use(express.static('client'));
+
+// Supabase 설정
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-
-// Supabase 클라이언트 생성
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 루트 경로 처리
-app.get('/', (req, res) => {
-    res.send('Welcome to the Survey Project!');
-});
+// 데이터 삽입 테스트 함수
+async function insertSurveyResponse() {
+    const { data, error } = await supabase
+        .from('survey_responses')
+        .insert([{
+            house: '아파트',
+            gender: '남성',
+            age: 30,
+            favorite_color: '파랑',
+            budget: 1000000,
+        }]);
+
+    if (error) {
+        console.error('Error inserting data:', error);
+    } else {
+        console.log('Data inserted successfully:', data);
+    }
+}
+
+insertSurveyResponse();
 
 // 설문 응답 데이터 삽입 API
 app.post('/submit-survey', async (req, res) => {
