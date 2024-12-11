@@ -67,7 +67,7 @@ window.nextQuestion = async function () {
         } else {
             console.log("데이터 저장 성공:", data);
             // 완료 페이지로 이동
-            window.location.href = "complete.html";
+            window.location.href = "Complete.html";
         }
     }
 };
