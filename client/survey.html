@@ -12,14 +12,14 @@
         <div id="question-container">
             <p id="question"></p>
             <input type="text" id="answer" placeholder="이름을 입력하세요">
-            <!-- 버튼들을 포함하는 div 추가 -->
             <div class="buttons-container">
                 <button class="previous" onclick="previousQuestion()">이전</button>
-                <button class="next" id="nextButton">다음</button> <!-- id 추가 -->
+                <button class="next" id="nextButton" onclick="nextQuestion()">다음</button>
             </div>
         </div>
     </div>
 
-    <script src="survey.js"></script>
+<script type="module" src="survey.js"></script>
+
 </body>
 </html>
