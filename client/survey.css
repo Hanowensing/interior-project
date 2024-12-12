@@ -72,3 +72,14 @@ input[type="radio"] {
 .previous, .next {
     margin-top:15px; /* 버튼 위쪽에 30px의 여백 추가 */
 }
+label {
+    display: block;
+    font-size: 16px;
+    margin: 5px 0;
+    cursor: pointer;
+}
+
+input[type="radio"] {
+    margin-right: 10px;
+}
+

@@ -17,6 +17,23 @@ const questions = [
     "예산이 어떻게 되나요"
 ];
 
+// 객관식 질문 보기
+const options = {
+    1: ["남성", "여성", "기타"],
+    2: ["10대", "20대", "30대", "40대", "50대", "60대 이상"],
+    3: ["다크 그레이", "딥 브라운", "웜 브라운", "네이비", "베이지"], // 색상 보기
+    4: ["5만원 이하", "10만원 이하 ", "20만원 이하", "50만원 이하", "100만원 이하", "100만원 초과"]
+};
+
+// 배경색 맵핑
+const backgroundColors = {
+    "다크 그레이": "#2e2e2e",
+    "딥 브라운": "#4b2f1a",
+    "웜 브라운": "#7f4b3b",
+    "네이비": "#000033",
+    "베이지": "#f5f5dc"
+};
+
 // 응답 저장용 배열
 const responses = [];
 
@@ -25,20 +42,73 @@ let currentQuestionIndex = 0;
 
 // HTML 요소 가져오기
 const questionElement = document.getElementById("question");
-const answerElement = document.getElementById("answer");
+const answerContainer = document.getElementById("answer-container");
 
 // 질문 업데이트 함수
 function updateQuestion() {
     questionElement.textContent = questions[currentQuestionIndex];
-    answerElement.value = responses[currentQuestionIndex] || ""; // 기존 응답 불러오기
+
+    // 기존 입력/보기를 제거
+    answerContainer.innerHTML = "";
+
+    // "집이 어디신가요?"만 주관식으로 렌더링
+    if (currentQuestionIndex === 0) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "answer";
+        input.placeholder = "집 위치를 입력하세요";
+        input.value = responses[currentQuestionIndex] || ""; // 기존 응답 불러오기
+        answerContainer.appendChild(input);
+    } else {
+        // 나머지 질문은 객관식 보기 렌더링
+        const currentOptions = options[currentQuestionIndex];
+        currentOptions.forEach((option) => {
+            const label = document.createElement("label");
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "response";
+            radio.value = option;
+
+            // 클릭 시 배경색 변경
+            radio.addEventListener("change", () => {
+                if (currentQuestionIndex === 3) { // 색상 질문일 경우
+                    document.body.style.backgroundColor = backgroundColors[option];
+                }
+            });
+
+            // 기존 선택 값 설정
+            if (responses[currentQuestionIndex] === option) {
+                radio.checked = true;
+            }
+
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(option));
+            answerContainer.appendChild(label);
+            answerContainer.appendChild(document.createElement("br"));
+        });
+    }
 }
 
 // 다음 질문으로 이동
 window.nextQuestion = async function () {
-    const answer = answerElement.value;
-    if (answer.trim() === "") {
-        alert("답변을 입력해주세요.");
-        return;
+    let answer;
+
+    if (currentQuestionIndex === 0) {
+        // 주관식 응답 처리
+        const input = document.getElementById("answer");
+        answer = input.value.trim();
+        if (answer === "") {
+            alert("답변을 입력해주세요.");
+            return;
+        }
+    } else {
+        // 객관식 응답 처리
+        const selectedOption = document.querySelector("input[name='response']:checked");
+        if (!selectedOption) {
+            alert("답변을 선택해주세요.");
+            return;
+        }
+        answer = selectedOption.value;
     }
 
     // 현재 응답 저장
@@ -81,4 +151,6 @@ window.previousQuestion = function () {
 };
 
 // 초기 질문 표시
-updateQuestion();
+document.addEventListener("DOMContentLoaded", function () {
+    updateQuestion();
+});
