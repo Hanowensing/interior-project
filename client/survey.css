@@ -10,22 +10,33 @@ body {
 
 .container {
     background-color: white;
-    padding: 40px; /* 기존 80px에서 40px으로 줄임 */
+    padding: 40px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 30%; /* 기존 40%에서 30%로 축소 */
+    width: 30%;
     text-align: center;
 }
 
 .question-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 10px; /* 질문 아래 간격 줄임 */
+    margin-bottom: 30px; /* 질문과 보기들 간의 간격 늘림 */
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    margin: 2px 0; /* 보기들 간의 간격을 3분의 1로 줄임 */
+    cursor: pointer;
+}
+
+input[type="radio"] {
+    margin-right: 5px;
 }
 
 input, button {
     width: 100%;
-    margin: 5px 0; /* 기존 10px에서 5px으로 간격 줄임 */
+    margin: 5px 0;
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -33,7 +44,7 @@ input, button {
 }
 
 button {
-    background-color: #F5F5DC; /* Beige color for buttons */
+    background-color: #F5F5DC;
     color: black;
     cursor: pointer;
 }
@@ -44,17 +55,5 @@ button:hover {
 
 button.previous, button.next {
     width: 48%;
-    margin-top: 10px; /* 기존 15px에서 10px으로 줄임 */
-}
-
-input[type="radio"] {
-    width: auto;
-    margin-right: 5px; /* 기존 10px에서 5px으로 줄임 */
-}
-
-label {
-    display: block;
-    font-size: 14px; /* 기존 16px에서 14px으로 축소 */
-    margin: 5px 0;
-    cursor: pointer;
+    margin-top: 10px;
 }
