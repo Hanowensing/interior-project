@@ -10,25 +10,26 @@ body {
 
 .container {
     background-color: white;
-    padding: 80px; /* 기존 20px에서 30px로 패딩을 늘림 */
+    padding: 40px; /* 기존 80px에서 40px으로 줄임 */
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 40%; /* 기존 40%에서 50%로 너비를 늘림 */
+    width: 30%; /* 기존 40%에서 30%로 축소 */
     text-align: center;
 }
+
 .question-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* 질문 아래 간격 줄임 */
 }
 
 input, button {
     width: 100%;
-    margin: 10px 0;
+    margin: 5px 0; /* 기존 10px에서 5px으로 간격 줄임 */
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    box-sizing: border-box; /* 박스 크기 조정을 포함시켜 정확한 크기 맞춤 */
+    box-sizing: border-box;
 }
 
 button {
@@ -41,45 +42,19 @@ button:hover {
     background-color: #E0E0C9;
 }
 
-button.previous {
+button.previous, button.next {
     width: 48%;
-    margin-right: 4%;
-}
-
-button.next {
-    width: 48%;
-    margin-left: 4%;
+    margin-top: 10px; /* 기존 15px에서 10px으로 줄임 */
 }
 
 input[type="radio"] {
     width: auto;
-    margin-right: 10px;
+    margin-right: 5px; /* 기존 10px에서 5px으로 줄임 */
 }
 
-.question-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.buttons-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.previous, .next {
-    margin-top:15px; /* 버튼 위쪽에 30px의 여백 추가 */
-}
 label {
     display: block;
-    font-size: 16px;
+    font-size: 14px; /* 기존 16px에서 14px으로 축소 */
     margin: 5px 0;
     cursor: pointer;
 }
-
-input[type="radio"] {
-    margin-right: 10px;
-}
-
