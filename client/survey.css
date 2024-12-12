@@ -1,86 +1,128 @@
-/* Body 스타일 */
+/* 전체 페이지 스타일 */
 body {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f5f5f5; /* 밝은 배경색 */
+    background-color: #f5f5f5; /* 기본 배경색 */
     margin: 0;
 }
 
 /* 컨테이너 스타일 */
 .container {
-    background-color: #ffffff;
-    padding: 20px 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
-    width: 100%;
-    max-width: 500px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 40%;
     text-align: center;
 }
 
-/* 질문 스타일 */
-h1 {
-    font-size: 24px;
-    color: #333333;
+/* 질문 텍스트 스타일 */
+#question {
+    font-size: 18px;
     margin-bottom: 20px;
 }
 
-p {
-    font-size: 18px;
-    color: #555555;
-    margin-bottom: 30px;
-}
-
-/* 입력 및 버튼 스타일 */
-input, button {
+/* 입력 필드 스타일 */
+input[type="text"] {
     width: 100%;
-    margin-bottom: 15px;
+    margin: 10px 0;
     padding: 10px;
-    font-size: 16px;
     border-radius: 5px;
-    border: 1px solid #cccccc;
+    border: 1px solid #ccc;
     box-sizing: border-box;
 }
 
-/* 버튼 기본 스타일 */
+/* 버튼 스타일 */
 button {
-    background-color: #007bff; /* 파란색 버튼 */
+    width: 48%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4b2f1a; /* 딥 브라운 버튼 */
     color: white;
     cursor: pointer;
-    border: none;
-    transition: background-color 0.3s ease;
+    font-weight: bold;
 }
 
-/* 버튼 호버 스타일 */
 button:hover {
-    background-color: #0056b3; /* 더 진한 파란색 */
+    background-color: #7f4b3b; /* 웜 브라운 */
 }
 
-/* 이전 및 다음 버튼 스타일 */
-button.previous, button.next {
-    width: 48%;
-    display: inline-block;
-    margin: 5px 1%; /* 버튼 간 간격 */
+button.previous {
+    margin-right: 4%;
 }
 
-/* 보기 스타일 */
+button.next {
+    margin-left: 4%;
+}
+
+/* 객관식 선택지 스타일 */
 label {
     display: flex;
     align-items: center;
-    font-size: 16px;
-    margin-bottom: 10px;
+    margin: 10px 0;
     cursor: pointer;
+    font-size: 16px;
 }
 
 input[type="radio"] {
     margin-right: 10px;
 }
 
+/* 색상 블록 스타일 */
+.color-option {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.color-block {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    display: inline-block;
+    border: 1px solid #000; /* 기본 테두리 */
+    border-radius: 3px;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+/* 색상 블록 호버 효과 */
+.color-block:hover {
+    transform: scale(1.1);
+    border-color: #7f4b3b; /* 웜 브라운 테두리 */
+}
+
+/* 선택된 색상 블록 스타일 */
+.color-block.selected {
+    border-color: #000; /* 선택된 색상의 테두리 */
+    box-shadow: 0 0 5px #000;
+}
+
 /* 버튼 컨테이너 스타일 */
 .buttons-container {
     display: flex;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: 15px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        width: 90%; /* 화면이 작아질 때 컨테이너 크기 조정 */
+    }
+
+    button {
+        width: 100%; /* 버튼 크기 조정 */
+        margin-bottom: 10px;
+    }
+
+    .buttons-container {
+        flex-direction: column;
+        align-items: center;
+    }
 }
