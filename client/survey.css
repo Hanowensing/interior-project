@@ -1,59 +1,86 @@
+/* Body 스타일 */
 body {
     font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #4B2F1A; /* Deep Brown */
+    background-color: #f5f5f5; /* 밝은 배경색 */
     margin: 0;
 }
 
+/* 컨테이너 스타일 */
 .container {
-    background-color: white;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 30%;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+    width: 100%;
+    max-width: 500px;
     text-align: center;
 }
 
-.question-container {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 30px; /* 질문과 보기들 간의 간격 늘림 */
+/* 질문 스타일 */
+h1 {
+    font-size: 24px;
+    color: #333333;
+    margin-bottom: 20px;
 }
 
+p {
+    font-size: 18px;
+    color: #555555;
+    margin-bottom: 30px;
+}
+
+/* 입력 및 버튼 스타일 */
+input, button {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    box-sizing: border-box;
+}
+
+/* 버튼 기본 스타일 */
+button {
+    background-color: #007bff; /* 파란색 버튼 */
+    color: white;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+/* 버튼 호버 스타일 */
+button:hover {
+    background-color: #0056b3; /* 더 진한 파란색 */
+}
+
+/* 이전 및 다음 버튼 스타일 */
+button.previous, button.next {
+    width: 48%;
+    display: inline-block;
+    margin: 5px 1%; /* 버튼 간 간격 */
+}
+
+/* 보기 스타일 */
 label {
-    display: block;
-    font-size: 14px;
-    margin: 2px 0; /* 보기들 간의 간격을 3분의 1로 줄임 */
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 10px;
     cursor: pointer;
 }
 
 input[type="radio"] {
-    margin-right: 5px;
+    margin-right: 10px;
 }
 
-input, button {
-    width: 100%;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
-button {
-    background-color: #F5F5DC;
-    color: black;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #E0E0C9;
-}
-
-button.previous, button.next {
-    width: 48%;
-    margin-top: 10px;
+/* 버튼 컨테이너 스타일 */
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
 }
