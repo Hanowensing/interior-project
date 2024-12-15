@@ -12,7 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const questions = [
     "집이 어디신가요?",
     "집안에서 어떤 색상을 주로 사용하고 싶은가요?",
-    "나이 테스트를 시작합니다",
+    "어떤 조명이 고객님한테 좋을지 분석해보겠습니다",
     "인테리어에 투자하려고 하는 자금이 어느 정도인가요?",
     "집 안에 예술 작품이나 장식품을 두는 것을 좋아하시나요?",
     "조명 스타일에서 중요하게 생각하는 점은 무엇인가요?",
@@ -105,10 +105,10 @@ function displaySequentialQuestions() {
     const answerContainer = document.getElementById("answer-container");
 
     const sequentialQuestions = [
-        { question: "오늘 날씨는 어때요?", options: ["맑음", "흐림", "비", "눈", "잘 모르겠어요"] },
-        { question: "오늘 기분은 어떠신가요?", options: ["좋아요", "그냥 그래요", "나빠요", "매우 나빠요", "잘 모르겠어요"] },
-        { question: "좋아하는 계절은 무엇인가요?", options: ["봄", "여름", "가을", "겨울", "잘 모르겠어요"] },
-        { question: "주말에는 주로 무엇을 하시나요?", options: ["영화 보기", "운동", "여행", "독서", "잘 모르겠어요"] }
+        { question: "집에서 책을 몇 권 정도 읽나요? (1달 기준)", options: ["1권 미만", "1~10권", "10권 이상"] },
+        { question: "집에 친구들을 몇 번 정도 데려오나요?(1달 기준)", options: ["1번 미만", "1~5번", "5~10번", "10번 이상"] },
+        { question: "집에 체류하는 비중이 어느 정도 되나요? (하루 24시간 기준)", options: ["20% 미만", "20% ~50%", "50~80%", "80% 초과"] },
+        { question: "불면증과 같이 잠을 잘 자지 못하는 경우가 얼마나 되나요? (1달 기준)", options: ["없음", "별로 없음(2~7회)", "보통임 (8~15회)", "자주 그럼(16회 이상)"] }
     ];
 
     let currentQuestionIndex = 0;
@@ -159,10 +159,30 @@ function displaySequentialQuestions() {
                 return;
             }
 
-            // 응답 저장 및 다음 질문으로 이동
+            // 응답 저장 및 조명 효과 설정
+            if (index === 0) {
+                if (selectedOption.value === "1권 미만") {
+                    alert("책을 읽고 싶게 만들어드리겠습니다. 빨간색이 독서활동 증진에 효과가 있습니다!");
+                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 100, 100, 0.4) 0%, rgba(255, 100, 100, 0) 100%)");
+                } else if (selectedOption.value === "1~10권") {
+                    alert("적절한 독서는 인생을 변화시킵니다. 흰색은 과도한 자극없이 독서 활동을 도와줍니다!");
+                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
+                } else if (selectedOption.value === "10권 이상") {
+                    alert("책을 정말 잘 읽는 당신이 대단합니다. 노란색은 당신의 눈의 피로를 풀어줍니다.");
+                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 255, 0, 0.4) 0%, rgba(255, 255, 0, 0) 100%)");
+                }
+            }
+
             responses.push(selectedOption.value);
+
+            // 다음 질문으로 이동
             currentQuestionIndex++;
-            showQuestion(currentQuestionIndex);
+            if (currentQuestionIndex < sequentialQuestions.length) {
+                showQuestion(currentQuestionIndex); // 다음 질문 표시
+            } else {
+                alert("모든 질문에 답변하셨습니다.");
+                nextQuestion(); // 다음 메인 질문으로 이동
+            }
         };
 
         answerContainer.appendChild(nextButton);
@@ -172,6 +192,33 @@ function displaySequentialQuestions() {
     showQuestion(currentQuestionIndex);
 }
 
+// 조명 효과 추가 함수
+function applyLightingEffect(gradientColor) {
+    const body = document.body;
+
+    // 기존 조명 효과가 있다면 제거
+    const existingLighting = document.querySelectorAll(".lighting-effect");
+    existingLighting.forEach((el) => el.remove());
+
+    // 조명 효과 추가
+    const lightEffect = document.createElement("div");
+    lightEffect.className = "lighting-effect";
+    lightEffect.style.background = gradientColor; // 채도에 따른 그라데이션
+    body.appendChild(lightEffect);
+
+    // 왼쪽 위 조명
+    const leftLight = document.createElement("div");
+    leftLight.className = "lighting-effect top-left";
+    leftLight.style.background = gradientColor; // 조명 색상 설정
+    body.appendChild(leftLight);
+
+    // 오른쪽 위 조명
+    const rightLight = document.createElement("div");
+    rightLight.className = "lighting-effect top-right";
+    rightLight.style.background = gradientColor; // 조명 색상 설정
+    body.appendChild(rightLight);
+}
+
 
 // 색상 원 렌더링 함수
 // 색상 원 렌더링 함수
@@ -179,7 +226,7 @@ function createFloatingCircles() {
     const colors = [
         { className: "white", label: "화이트", colorCode: "#ffffff" },
         { className: "beige", label: "베이지", colorCode: "#f5f5dc" },
-        { className: "deep-brown", label: "딥 브라운", colorCode: "#4b2f1a" },
+        { className: "olive-green", label: "올리브 그린", colorCode: "#808000" },
         { className: "light-blue", label: "연한 하늘색", colorCode: "#add8e6" },
         { className: "light-orange", label: "연한 주황색", colorCode: "#f9d5a7" },
         { className: "light-gray", label: "연한 그레이색", colorCode: "#d3d3d3" },

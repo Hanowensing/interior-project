@@ -45,11 +45,11 @@ h1 {
 /* 색상 정의 */
 .circle.white { background-color: #ffffff; }
 .circle.beige { background-color: #f5f5dc; }
-.circle.deep-brown { background-color: #4b2f1a; }
+.circle.olive-green { background-color: #808000; }
 .circle.light-blue { background-color: #add8e6; }
 .circle.light-orange { background-color: #f9d5a7; }
 .circle.light-gray { background-color: #d3d3d3; }
-.circle.light-brown { background-color: #a67d5a; }
+.circle.light-brown { background-color: #F5DEB3; }
 
 
 .circle.expand {
@@ -61,7 +61,7 @@ h1 {
 /* 개별 동선 애니메이션 */
 .circle.white { animation: move1 10s infinite linear; }
 .circle.beige { animation: move2 12s infinite linear; }
-.circle.deep-brown { animation: move3 9s infinite linear; }
+.circle.olive-green { animation: move3 9s infinite linear; }
 .circle.light-blue { animation: move4 11s infinite linear; }
 .circle.light-orange { animation: move5 8s infinite linear; }
 .circle.light-gray { animation: move6 13s infinite linear; }
@@ -203,53 +203,31 @@ input[type="radio"] {
     margin-top:15px; /* 버튼 위쪽에 30px의 여백 추가 */
 }
 
-/* 브랜드 이미지 스타일 */
-.brand-image {
+
+
+
+.lighting-effect {
     position: absolute;
-    width: 100px; /* 적당한 크기로 설정 */
-    height: auto;
-    cursor: pointer;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    width: 100%; /* 화면 전체 가로 폭 */
+    height: 150px; /* 조명 높이 */
+    background: linear-gradient(to bottom, rgba(255, 100, 100, 0.4) 0%, rgba(255, 100, 100, 0) 100%);
+    z-index: -1; /* 뒤로 보내기 */
+    top: 0; /* 화면 상단에 고정 */
+    left: 0; /* 화면 왼쪽부터 시작 */
+    animation: flicker 3s infinite; /* 깜빡이는 애니메이션 */
 }
 
-/* 풍선 스타일 */
-.balloon {
-    position: absolute;
-    bottom: -80px; /* 시작 위치 */
-    width: 60px;
-    height: 80px;
-    border-radius: 50%;
-    text-align: center;
-    color: white;
-    font-size: 14px;
-    line-height: 80px;
-    cursor: pointer;
-    background-color: #FFD700; /* 기본 색상 (JS에서 덮어씌움) */
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    transform: translateY(100px); /* 시작 위치 아래로 내려감 */
-    animation: rise 3s ease-in forwards; /* 위로 올라오는 애니메이션 */
-    transition: transform 0.3s ease, background-color 0.3s ease;
-}
-
-.balloon:hover {
-    transform: scale(1.2); /* 마우스를 올리면 풍선이 확대 */
-}
-
-/* 풍선 위로 올라오는 애니메이션 */
-@keyframes rise {
+/* 깜빡이는 애니메이션 */
+@keyframes flicker {
     0% {
-        opacity: 0;
-        transform: translateY(100px); /* 시작 위치 */
+        opacity: 0.7;
     }
     50% {
-        opacity: 1;
+        opacity: 0.4;
     }
     100% {
-        opacity: 1;
-        transform: translateY(0); /* 최종 위치 */
+        opacity: 0.7;
     }
 }
-
 
 
