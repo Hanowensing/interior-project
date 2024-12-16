@@ -106,17 +106,65 @@ function displaySequentialQuestions() {
 
     const sequentialQuestions = [
         { question: "집에서 책을 몇 권 정도 읽나요? (1달 기준)", options: ["1권 미만", "1~10권", "10권 이상"] },
-        { question: "집에 친구들을 몇 번 정도 데려오나요?(1달 기준)", options: ["1번 미만", "1~5번", "5~10번", "10번 이상"] },
+        { question: "집에 친구들을 몇 번 정도 데려오나요? (1달 기준)", options: ["1번 미만", "1~5번", "5~10번", "10번 이상"] },
         { question: "집에 체류하는 비중이 어느 정도 되나요? (하루 24시간 기준)", options: ["20% 미만", "20% ~50%", "50~80%", "80% 초과"] },
         { question: "불면증과 같이 잠을 잘 자지 못하는 경우가 얼마나 되나요? (1달 기준)", options: ["없음", "별로 없음(2~7회)", "보통임 (8~15회)", "자주 그럼(16회 이상)"] }
     ];
 
     let currentQuestionIndex = 0;
+    const responses = [];
+    let flashingIntervalId = null;
+
+    function applySmoothFlashingEffect(color) {
+        let opacity = 0;
+        let increasing = true;
+
+        if (flashingIntervalId) {
+            clearInterval(flashingIntervalId);
+        }
+
+        flashingIntervalId = setInterval(() => {
+            if (increasing) {
+                opacity += 0.02;
+                if (opacity >= 0.4) increasing = false;
+            } else {
+                opacity -= 0.02;
+                if (opacity <= 0) increasing = true;
+            }
+            document.body.style.backgroundImage = `${color.replace(/rgba\(([^,]+,[^,]+,[^,]+),[^\)]+\)/, `rgba($1, ${opacity})`)}`;
+        }, 50);
+    }
+
+    function stopFlashingEffect() {
+        if (flashingIntervalId) {
+            clearInterval(flashingIntervalId);
+            flashingIntervalId = null;
+            document.body.style.backgroundImage = "none";
+        }
+    }
+
+    function resetBackgroundColor() {
+        stopFlashingEffect();
+        document.body.style.backgroundColor = "white";
+
+        // 버튼 색상도 흰색으로 변경
+        const resetButton = document.querySelector("#top-left-buttons button:first-child");
+        if (resetButton) {
+            resetButton.style.backgroundColor = "white";
+            resetButton.style.color = "black";
+        }
+    }
+
+    function goToDreamland() {
+        stopFlashingEffect();
+        document.body.style.backgroundColor = "black";
+    }
 
     function showQuestion(index) {
         if (index >= sequentialQuestions.length) {
             alert("모든 질문에 답변하셨습니다.");
-            nextQuestion(); // 다음 메인 질문으로 이동
+            stopFlashingEffect();
+            nextQuestion();
             return;
         }
 
@@ -147,6 +195,23 @@ function displaySequentialQuestions() {
             answerContainer.appendChild(optionContainer);
         });
 
+        // 버튼 컨테이너 생성
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.justifyContent = "space-between";
+        buttonContainer.style.marginTop = "20px";
+
+        // 이전 버튼
+        if (index > 0) {
+            const prevButton = document.createElement("button");
+            prevButton.textContent = "이전 질문으로";
+            prevButton.onclick = () => {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            };
+            buttonContainer.appendChild(prevButton);
+        }
+
         // Next 버튼
         const nextButton = document.createElement("button");
         nextButton.textContent = "다음 질문으로";
@@ -159,38 +224,147 @@ function displaySequentialQuestions() {
                 return;
             }
 
-            // 응답 저장 및 조명 효과 설정
+            const selectedValue = selectedOption.value;
+
+            // 각 질문에 대한 조명 효과 및 알림 처리
             if (index === 0) {
-                if (selectedOption.value === "1권 미만") {
+                if (selectedValue === "1권 미만") {
                     alert("책을 읽고 싶게 만들어드리겠습니다. 빨간색이 독서활동 증진에 효과가 있습니다!");
-                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 100, 100, 0.4) 0%, rgba(255, 100, 100, 0) 100%)");
-                } else if (selectedOption.value === "1~10권") {
-                    alert("적절한 독서는 인생을 변화시킵니다. 흰색은 과도한 자극없이 독서 활동을 도와줍니다!");
-                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
-                } else if (selectedOption.value === "10권 이상") {
+                    applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 100, 100, 0.4) 0%, rgba(255, 100, 100, 0) 100%)");
+                } else if (selectedValue === "1~10권") {
+                    alert("적절한 독서는 인생을 변화시킵니다. 흰색은 과도한 자극 없이 독서 활동을 도와줍니다!");
+                    applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
+                } else if (selectedValue === "10권 이상") {
                     alert("책을 정말 잘 읽는 당신이 대단합니다. 노란색은 당신의 눈의 피로를 풀어줍니다.");
-                    applyLightingEffect("linear-gradient(to bottom, rgba(255, 255, 0, 0.4) 0%, rgba(255, 255, 0, 0) 100%)");
+                    applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 255, 0, 0.4) 0%, rgba(255, 255, 0, 0) 100%)");
+                }
+            } else if (index === 1) {
+                if (selectedValue === "1번 미만") {
+                    alert("집에서 친구를 부르는 비율이 낮으시군요. 은은한 노란색으로 집을 따뜻하게 만들어드립니다!");
+                    applySmoothFlashingEffect("linear-gradient(to left, rgba(255, 255, 150, 0.4) 0%, rgba(255, 255, 150, 0) 100%)");
+                } else if (selectedValue === "1~5번") {
+                    alert("친구들이 간간히 집에 오는군요. 연한 하늘색으로 친구들이 왔을 때 편안함을 줄 수 있습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to left, rgba(173, 216, 230, 0.4) 0%, rgba(173, 216, 230, 0) 100%)");
+                } else if (selectedValue === "5~10번") {
+                    alert("친구들이 꽤 자주 오시네요. 연한 주황색 조명이 따뜻함을 줄 수 있습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to left, rgba(255, 200, 150, 0.4) 0%, rgba(255, 200, 150, 0) 100%)");
+                } else if (selectedValue === "10번 이상") {
+                    alert("친구들이 정말 자주 오시네요! 검정색 배경과 흰색 조명으로 분위기를 새롭게 만들어보세요.");
+                    applySmoothFlashingEffect("linear-gradient(to left, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
+                }
+            } else if (index === 2) {
+                if (selectedValue === "20% 미만") {
+                    alert("집에서 주로 잠을 주무시는 동안이라도 편히 쉬실 수 있도록 돕겠습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 150, 150, 0.4) 0%, rgba(255, 150, 150, 0) 100%)");
+                } else if (selectedValue === "20% ~50%") {
+                    alert("집에 있는 시간 동안 편안하게 쉴 수 있는 환경을 만들어 드리겠습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 255, 200, 0.4) 0%, rgba(255, 255, 200, 0) 100%)");
+                } else if (selectedValue === "50~80%") {
+                    alert("절반 이상의 시간을 집에서 보내시는군요. 안락한 환경을 만들어 드리겠습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to top, rgba(200, 200, 200, 0.4) 0%, rgba(200, 200, 200, 0) 100%)");
+                } else if (selectedValue === "80% 초과") {
+                    alert("집에서 많은 시간을 보내시니, 적절한 조명으로 편안함을 제공하겠습니다.");
+                    applySmoothFlashingEffect("linear-gradient(to top, rgba(150, 200, 255, 0.4) 0%, rgba(150, 200, 255, 0) 100%)");
+                }
+            } else if (index === 3) {
+                if (selectedValue === "없음") {
+                    alert("불면증 없이 잘 주무신다니 좋습니다! 편안한 흰색 조명을 유지합니다.");
+                    applySmoothFlashingEffect("linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
+                } else if (selectedValue === "별로 없음(2~7회)") {
+                    alert("가끔 불면증이 있으시군요. 편안한 푸른빛을 추천드립니다.");
+                    applySmoothFlashingEffect("linear-gradient(to right, rgba(173, 216, 230, 0.4) 0%, rgba(173, 216, 230, 0) 100%)");
+                } else if (selectedValue === "보통임 (8~15회)") {
+                    alert("불면증으로 고생하시는군요. 차분한 어두운 푸른 조명을 추천드립니다.");
+                    applySmoothFlashingEffect("linear-gradient(to right, rgba(50, 100, 150, 0.4) 0%, rgba(50, 100, 150, 0) 100%)");
+                } else if (selectedValue === "자주 그럼(16회 이상)") {
+                    alert("불면증이 자주 발생하니 숙면을 위한 어두운 환경을 추천드립니다.");
+                    applySmoothFlashingEffect("linear-gradient(to right, rgba(30, 30, 30, 0.4) 0%, rgba(30, 30, 30, 0) 100%)");
                 }
             }
 
-            responses.push(selectedOption.value);
+            // 응답 저장
+            responses[index] = selectedValue;
 
             // 다음 질문으로 이동
             currentQuestionIndex++;
             if (currentQuestionIndex < sequentialQuestions.length) {
-                showQuestion(currentQuestionIndex); // 다음 질문 표시
+                showQuestion(currentQuestionIndex);
             } else {
                 alert("모든 질문에 답변하셨습니다.");
-                nextQuestion(); // 다음 메인 질문으로 이동
+                stopFlashingEffect();
+                nextQuestion();
             }
         };
 
-        answerContainer.appendChild(nextButton);
+        buttonContainer.appendChild(nextButton);
+
+        // 왼쪽 상단에 배경 초기화 버튼과 꿈나라 버튼 생성
+        let topLeftContainer = document.getElementById("top-left-buttons");
+        if (!topLeftContainer) {
+            topLeftContainer = document.createElement("div");
+            topLeftContainer.id = "top-left-buttons";
+            topLeftContainer.style.position = "absolute";
+            topLeftContainer.style.top = "10px";
+            topLeftContainer.style.left = "10px";
+            topLeftContainer.style.display = "flex";
+            topLeftContainer.style.gap = "10px";
+
+            document.body.appendChild(topLeftContainer);
+        }
+        topLeftContainer.innerHTML = "";
+
+
+const resetButton = document.createElement("button");
+resetButton.textContent = "조명\n초기화";
+resetButton.onclick = () => {
+    resetBackgroundColor();
+
+    // previous와 next 버튼의 색상을 흰색으로 변경
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
+        if (button !== resetButton) { // resetButton 제외
+            button.style.backgroundColor = "white";
+            button.style.color = "black"; // 텍스트 색상은 가독성을 위해 검정색
+        }
+    });
+};
+
+
+resetButton.style.fontSize = "80%";
+resetButton.style.transform = "scale(1.2)"; // 크기를 50% 증가
+resetButton.style.whiteSpace = "pre-wrap"; // 텍스트 줄바꿈 설정
+topLeftContainer.appendChild(resetButton);
+
+const dreamlandButton = document.createElement("button");
+dreamlandButton.textContent = "꿈나라";
+dreamlandButton.onclick = () => {
+    goToDreamland();
+
+    // previous와 next 버튼의 색상을 검정 배경과 흰색 텍스트로 변경
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
+        if (button !== dreamlandButton) { // dreamlandButton 제외
+            button.style.backgroundColor = "black"; // 배경색 검정
+            button.style.color = "white"; // 텍스트 흰색
+        }
+    });
+};
+dreamlandButton.style.fontSize = "80%";
+dreamlandButton.style.transform = "scale(1.2)";
+topLeftContainer.appendChild(dreamlandButton);
+
+        answerContainer.appendChild(buttonContainer);
     }
 
     // 첫 번째 질문 표시
     showQuestion(currentQuestionIndex);
 }
+
+
+
+
+
+
 
 // 조명 효과 추가 함수
 function applyLightingEffect(gradientColor) {
