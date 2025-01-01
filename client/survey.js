@@ -12,6 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const questions = [
     "집이 어디신가요?",
     "집안에서 어떤 색상을 주로 사용하고 싶은가요?",
+    "방의 가로 세로 사이즈를 알려주세요! 대략적이어도 됩니다. (양 팔 기준)", 
     "어떤 조명이 고객님한테 좋을지 분석해보겠습니다",
     "집 안에 어떤 가구나 물건들을 추가로 배치하고 싶으신가요?",
     "인테리어에 투자하려고 하는 자금이 어느 정도인가요?",
@@ -35,19 +36,63 @@ function updateQuestion() {
     questionElement.textContent = questions[currentQuestionIndex];
     answerContainer.innerHTML = ""; // 기존 내용 초기화
 
-   if (currentQuestionIndex === 0 || currentQuestionIndex === 5) {
-        createTextInput(); // 주관식 입력
-    } else if (currentQuestionIndex === 1) {
+  if (currentQuestionIndex === 0) {
+        createFileInput(); // 사진 첨부 입력 필드
+    }  else if (currentQuestionIndex === 1) {
         createFloatingCircles(); // 색상 원 렌더링
     } else if (currentQuestionIndex === 2) {
+        createArmMeasurementInputs(); // 팔 실측
+    } else if (currentQuestionIndex === 3) {
         prepareAgeTestFadeOut(); // 나이 테스트 준비 (3번째 페이지)
-    } else if (currentQuestionIndex === 3){
+    } else if (currentQuestionIndex === 4){
          createTextInput2();
-    }   else if (currentQuestionIndex === 4) {
+    }  else if (currentQuestionIndex === 5) {
         createBudgetOptions(); // 자금 질문 객관식 렌더링
-    } else if (currentQuestionIndex === 6) {
+    }  else if (currentQuestionIndex ===6) {
+          createTextInput();
+    }  else if (currentQuestionIndex === 7) {
         displayFinalMessage(); // 집 분위기 객관식 렌더링
     }
+
+function createArmMeasurementInputs() {
+    // 가로 입력 필드
+    const widthInputLabel = document.createElement("label");
+    widthInputLabel.textContent = "가로 (ex. 팔 1개반):";
+    const widthInput = document.createElement("input");
+    widthInput.type = "text";
+    widthInput.id = "width-input";
+    widthInput.value = responses[currentQuestionIndex]?.width || ""; // 기존 응답 복원
+ widthInput.style.width = "350px"; // 가로 길이 고정
+
+    // 세로 입력 필드
+    const heightInputLabel = document.createElement("label");
+    heightInputLabel.textContent = "세로 (ex. 팔 4개):";
+    const heightInput = document.createElement("input");
+    heightInput.type = "text";
+    heightInput.id = "height-input";
+    heightInput.value = responses[currentQuestionIndex]?.height || ""; // 기존 응답 복원
+heightInput.style.width = "350px"; // 가로 길이 고정
+
+    // 입력 이벤트로 응답 저장
+    widthInput.addEventListener("input", () => {
+        responses[currentQuestionIndex] = {
+            ...responses[currentQuestionIndex],
+            width: widthInput.value,
+        };
+    });
+    heightInput.addEventListener("input", () => {
+        responses[currentQuestionIndex] = {
+            ...responses[currentQuestionIndex],
+            height: heightInput.value,
+        };
+    });
+
+    // 요소 추가
+    answerContainer.appendChild(widthInputLabel);
+    answerContainer.appendChild(widthInput);
+    answerContainer.appendChild(heightInputLabel);
+    answerContainer.appendChild(heightInput);
+}
 
 
   const prevButton = document.querySelector(".previous");
@@ -55,6 +100,44 @@ function updateQuestion() {
     if (prevButton) prevButton.textContent = "previous";
     if (nextButton) nextButton.textContent = "next";
 }
+
+function createFileInput() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.id = "file-answer";
+
+    const fileLabel = document.createElement("label");
+    fileLabel.textContent = "사진을 첨부하세요:";
+    fileLabel.htmlFor = "file-answer";
+
+    const fileNameDisplay = document.createElement("p");
+    fileNameDisplay.id = "file-name";
+    fileNameDisplay.style.marginTop = "10px";
+    fileNameDisplay.style.fontStyle = "italic";
+    fileNameDisplay.style.color = "#555";
+
+    fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (file) {
+            fileNameDisplay.textContent = `선택된 파일: ${file.name}`;
+            responses[currentQuestionIndex] = file.name; // 응답 저장
+        } else {
+            fileNameDisplay.textContent = "";
+            responses[currentQuestionIndex] = ""; // 응답 초기화
+        }
+    });
+
+    answerContainer.appendChild(fileLabel);
+    answerContainer.appendChild(fileInput);
+    answerContainer.appendChild(fileNameDisplay);
+
+    // 이전 응답 복원
+    if (responses[currentQuestionIndex]) {
+        fileNameDisplay.textContent = `선택된 파일: ${responses[currentQuestionIndex]}`;
+    }
+}
+
 
 // 마지막 질문 추가 함수
 // 마지막 질문 추가 함수
@@ -363,13 +446,13 @@ else if (index === 1) {
             } 
 else if (index === 2) {
                 if (selectedValue === "30% 미만") {
-                    alert("집에서 주로 잠을 주무시는 동안이라도 편히 쉬실 수 있도록 돕겠습니다.");
+                    alert("집에서 주로 잠을 주무시는 동안이라도 편히 쉬실 수 있는 연한 핑크색을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 150, 150, 0.4) 0%, rgba(255, 150, 150, 0) 100%)");
                 } else if (selectedValue === "30% ~70%") {
-                    alert("집에 있는 시간 동안 편안하게 쉴 수 있는 환경을 만들어 드리겠습니다.");
+                    alert("집에 있는 시간 동안 편안하게 쉴 수 있는 연한 노란색을 추천드립니다");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 255, 200, 0.4) 0%, rgba(255, 255, 200, 0) 100%)");
                 } else if (selectedValue === "70% 초과") {
-                    alert("꽤 많은 시간을 집에서 보내시는군요. 안락한 환경을 만들어 드리겠습니다.");
+                    alert("꽤 많은 시간을 집에서 보내시는군요. 안락한 환경을 위한 연한 회색을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(200, 200, 200, 0.4) 0%, rgba(200, 200, 200, 0) 100%)");
                 } 
           
@@ -590,50 +673,62 @@ function createBudgetOptions() {
 
 
 // 다음 질문으로 이동
-// 다음 질문으로 이동
 window.nextQuestion = async function () {
-    let answer;
+    const currentQuestion = questions[currentQuestionIndex];
 
-    if (currentQuestionIndex === 0 || currentQuestionIndex ===3 || currentQuestionIndex === 5) {
-        // 주관식 입력 검증
-        const input = document.getElementById("answer");
-        answer = input?.value.trim();
-        if (!answer) {
-            alert("답변을 입력해주세요.");
+    let answer;
+    if (currentQuestionIndex === 0) {
+        const fileInput = document.getElementById("file-answer");
+        if (fileInput && fileInput.files.length > 0) {
+            answer = fileInput.files[0].name;
+            responses[currentQuestionIndex] = answer; // 응답 저장
+        } else if (responses[currentQuestionIndex]) {
+            // 이미 저장된 파일 이름이 있는 경우
+            answer = responses[currentQuestionIndex];
+        } else {
+            alert("답변을 입력하세요.");
             return;
         }
-        responses[currentQuestionIndex] = answer;
     } else if (currentQuestionIndex === 1) {
-        // 색상 선택 검증
-        answer = responses[currentQuestionIndex]; // 색상 선택 시 responses 배열에 저장된 값
+        answer = responses[currentQuestionIndex];
         if (!answer) {
-            alert("답변을 선택해주세요."); // 값이 없으면 경고
-            return;
-        }
-    } else {
-        // 객관식 선택 검증
-        const selectedOption = document.querySelector("input[name]:checked");
-        if (!selectedOption) {
             alert("답변을 선택해주세요.");
             return;
         }
-        responses[currentQuestionIndex] = selectedOption.value;
+    } else if (currentQuestion.type === "text") {
+        const input = document.getElementById("text-answer");
+        if (input) {
+            answer = input.value.trim();
+            if (!answer) {
+                alert("답변을 입력해주세요.");
+                return;
+            }
+            responses[currentQuestionIndex] = answer; // 응답 저장
+        } else {
+            alert("답변 입력 필드가 없습니다.");
+            return;
+        }
+    } else if (currentQuestion.type === "choice") {
+        const selectedOption = document.querySelector('input[name="choice"]:checked');
+        if (selectedOption) {
+            answer = selectedOption.value;
+        } else {
+            alert("답변을 선택해주세요.");
+            return;
+        }
     }
 
-    // 다음 질문으로 이동
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
         updateQuestion();
     } else {
-        // 설문 완료 시 Supabase로 데이터 전송
         const payload = {
             house: responses[0],
-            favorite_color: responses[1],
+            gender: responses[1],
             age: responses[2],
-            budget: responses[3],
-            art_preference: responses[4],
-            lighting_preference: responses[5],
-            home_mood: responses[6]
+            favorite_color: responses[3],
+            budget: responses[4],
+            furniture_preferences: responses[5],
         };
 
         const { data, error } = await supabase.from("survey_responses").insert([payload]);
@@ -643,11 +738,10 @@ window.nextQuestion = async function () {
             alert("설문 저장 중 문제가 발생했습니다.");
         } else {
             console.log("데이터 저장 성공:", data);
-            window.location.href = "complete.html";
+            window.location.href = "Complete.html";
         }
     }
 };
-
 
 
 // 이전 질문으로 이동
@@ -659,6 +753,4 @@ window.previousQuestion = function () {
 };
 
 // 초기 질문 표시
-document.addEventListener("DOMContentLoaded", function () {
-    updateQuestion();
-});
+updateQuestion();
