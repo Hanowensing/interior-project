@@ -13,7 +13,7 @@ const questions = [
     "집이 어디신가요?",
     "집안에서 어떤 색상을 주로 사용하고 싶은가요?",
     "방의 가로 세로 사이즈를 알려주세요! 대략적이어도 됩니다. (양 팔 기준)", 
-    "어떤 조명이 고객님한테 좋을지 분석해보겠습니다",
+    "조명 추천 서비스를 시작합니다",
     "집 안에 어떤 가구나 물건들을 추가로 배치하고 싶으신가요?",
     "인테리어에 투자하려고 하는 자금이 어느 정도인가요?",
     "이메일 주소를 입력해주세요", // 이메일 입력 추가
@@ -29,6 +29,22 @@ let currentQuestionIndex = 0;
 // HTML 요소 가져오기
 const questionElement = document.getElementById("question");
 const answerContainer = document.getElementById("answer-container");
+
+function updateResponses(key, value) {
+    const currentResponse = responses[currentQuestionIndex] || {};
+    responses[currentQuestionIndex] = {
+        ...currentResponse,
+        [key]: value, // key-value 형태로 응답 저장
+    };
+    localStorage.setItem("surveyResponses", JSON.stringify(responses)); // 로컬 저장소에 저장
+}
+
+function saveMultipleChoiceResponse(selectedOption) {
+    // 현재 질문 인덱스에 선택된 값을 저장
+    responses[currentQuestionIndex] = selectedOption;
+    localStorage.setItem("surveyResponses", JSON.stringify(responses)); // 로컬 저장소에 동기화
+}
+
 
 // 질문 업데이트 함수
 // 질문 업데이트 함수
@@ -53,6 +69,8 @@ function updateQuestion() {
     }  else if (currentQuestionIndex === 7) {
         displayFinalMessage(); // 집 분위기 객관식 렌더링
     }
+
+
 
 function createArmMeasurementInputs() {
     // 가로 입력 필드
@@ -87,6 +105,10 @@ heightInput.style.width = "350px"; // 가로 길이 고정
         };
     });
 
+  // 이전 응답 복원
+    restorePreviousResponse();
+
+
     // 요소 추가
     answerContainer.appendChild(widthInputLabel);
     answerContainer.appendChild(widthInput);
@@ -100,6 +122,25 @@ heightInput.style.width = "350px"; // 가로 길이 고정
     if (prevButton) prevButton.textContent = "previous";
     if (nextButton) nextButton.textContent = "next";
 }
+
+function hideButtons() {
+    const previousButton = document.querySelector('.previous'); // 이전 버튼
+    const nextButton = document.querySelector('.next'); // 다음 버튼
+
+    // 버튼 숨기기
+    if (previousButton) previousButton.style.display = 'none';
+    if (nextButton) nextButton.style.display = 'none';
+}
+
+function showButtons() {
+    const previousButton = document.querySelector('.previous'); // 이전 버튼
+    const nextButton = document.querySelector('.next'); // 다음 버튼
+
+    // 버튼 보이기
+    if (previousButton) previousButton.style.display = 'inline-block'; // 혹은 'block'
+    if (nextButton) nextButton.style.display = 'inline-block'; // 혹은 'block'
+}
+
 
 function createFileInput() {
     const fileInput = document.createElement("input");
@@ -133,9 +174,8 @@ function createFileInput() {
     answerContainer.appendChild(fileNameDisplay);
 
     // 이전 응답 복원
-    if (responses[currentQuestionIndex]) {
-        fileNameDisplay.textContent = `선택된 파일: ${responses[currentQuestionIndex]}`;
-    }
+    restorePreviousResponse();
+    
 }
 
 
@@ -183,34 +223,175 @@ function createTextInput() {
     input.type = "text";
     input.id = "answer";
     input.placeholder = "답변을 입력하세요";
-    input.value = responses[currentQuestionIndex] || ""; // 기존 응답 불러오기
+    input.value = responses[currentQuestionIndex]?.text || ""; // 기존 응답 불러오기
+
+    // 입력 이벤트로 응답 저장
+    input.addEventListener("input", () => {
+        updateResponses("text", input.value); // 입력 값 저장
+    });
+
     answerContainer.appendChild(input);
-        input.style.width = "350px"; // 가로 길이를 70px로 고정
+
+    // 스타일 설정
+    input.style.width = "350px"; // 가로 길이 고정
 }
 
+
 function createTextInput2() {
+
+    showButtons();
     const input = document.createElement("input");
     input.type = "text";
     input.id = "answer";
     input.placeholder = "답변을 입력하세요(없을 경우 없음)";
-    input.value = responses[currentQuestionIndex] || ""; // 기존 응답 불러오기
+    input.value = responses[currentQuestionIndex]?.text || ""; // 기존 응답 불러오기
+
+    // 입력 이벤트로 응답 저장
+    input.addEventListener("input", () => {
+        updateResponses("text", input.value); // 입력 값 저장
+    });
+
     answerContainer.appendChild(input);
-        input.style.width = "350px"; // 가로 길이를 70px로 고정
+
+    // 스타일 설정
+    input.style.width = "350px"; // 가로 길이 고정
+
+    // 이전 응답 복원
+    restorePreviousResponse();
 }
 
+
 // 나이 테스트 준비: 기존 요소 페이드아웃
-// 나이 테스트 준비: 기존 요소 페이드아웃
-function prepareAgeTestFadeOut() {
+// 질문 상태를 추적하는 객체
+const questionStatus = {
+    answeredQuestions: new Set(), // 응답 완료된 질문 ID 저장
+};
+
+
+// prepareAgeTestFadeOut 함수 수정
+
+let lastQuestionText = "";
+
+function prepareAgeTestFadeOut(questionId) {
+            // 버튼 숨기기
+        hideButtons();
+
     const questionElement = document.getElementById("question"); // 질문 텍스트
     const houseMagicianElement = document.getElementById("house-magician"); // h1
+    const previousButton = document.querySelector('.previous'); // 이전 버튼
+    const nextButton = document.querySelector('.next'); // 다음 버튼
+
+    // 이미 응답된 질문이라면 마지막 질문을 표시
+    if (questionStatus.answeredQuestions.has(questionId)) {
+        markQuestionAsAnswered(questionElement, questionId); // 체크 표시 유지
+        displayLastQuestion(); // 마지막 질문 표시
+        return;
+    }
+
+    // 소질문 확인 로직 (index === 3일 때 처리)
+    if (questionId === "3") {
+        const subQuestions = document.querySelectorAll('.sub-question'); // 소질문 요소
+        let allAnswered = true;
+
+        subQuestions.forEach((subQuestion, index) => {
+            const inputs = subQuestion.querySelectorAll('input'); // 소질문의 입력 요소
+            const answered = Array.from(inputs).some(input => input.checked || input.value.trim() !== "");
+            
+            if (!answered) {
+                allAnswered = false;
+                alert(`소질문 ${index + 1}에 답변을 입력하세요.`);
+                return; // 특정 소질문에서 응답이 누락되면 경고 후 중단
+            }
+        });
+
+        // 소질문 중 하나라도 응답이 누락되었으면 종료
+        if (!allAnswered) {
+            return;
+        }
+    }
 
     // 5초 후 "HOUSE MAGICIAN"과 질문 서서히 사라짐
     setTimeout(() => {
-        fadeOutElements([houseMagicianElement, questionElement], () => {
-            displaySequentialQuestions(); // 질문 순차 표시
-        });
-    }, 2500);
+    const countdownElement = document.createElement("div");
+    countdownElement.id = "countdown";
+    countdownElement.style.position = "absolute";
+    countdownElement.style.top = "calc(50% + 100px)";
+    countdownElement.style.left = "50%";
+    countdownElement.style.transform = "translate(-50%, -50%)";
+    countdownElement.style.fontSize = "24px";
+    countdownElement.style.color = "#black"; // 빨간색
+    countdownElement.style.textAlign = "center";
+    countdownElement.style.transition = "opacity 1s ease, transform 1s ease"; // 애니메이션 설정
+
+    document.body.appendChild(countdownElement);
+
+    let countdown = 3; // 카운트다운 시작 값
+
+    // 카운트다운 업데이트
+    const interval = setInterval(() => {
+        countdownElement.textContent = `${countdown}`;
+        countdown--;
+
+        if (countdown < 0) {
+            clearInterval(interval); // 카운트다운 종료
+            countdownElement.remove(); // 카운트다운 요소 제거
+
+            fadeOutElements([houseMagicianElement, questionElement], () => {
+                // 응답 상태 업데이트
+                questionStatus.answeredQuestions.add(questionId);
+                responses[questionId] = { status: "completed" }; // 응답 저장 (예제)
+
+                // 기존 선언된 markQuestionAsAnswered 호출
+                markQuestionAsAnswered(questionElement, questionId);
+
+                displaySequentialQuestions(); // 다음 질문 표시
+            });
+        }
+    }, 1000); // 1초 간격으로 카운트다운 업데이트
+}, 2500);
 }
+
+// 마지막 질문 표시 함수
+function displayLastQuestion() {
+    const questionElement = document.getElementById("question"); // 질문 텍스트
+
+    if (questionElement) {
+        // 마지막 질문 텍스트와 버튼 표시
+        questionElement.innerHTML = `
+            조명 추천 정보 수집이 완료되었습니다. <br>
+            <br>
+            추후 의뢰서 작성 시 반영됩니다.<br>
+            <button id="retry-button">다시 추천받기 (1회 가능) </button>
+        `;
+
+        // "다시 추천받기" 버튼 클릭 이벤트 추가
+        const retryButton = document.getElementById("retry-button");
+        if (retryButton) {
+            retryButton.addEventListener("click", handleRetryClick);
+        }
+    }
+}
+
+// 버튼 클릭 이벤트 핸들러
+function handleRetryClick() {
+    const questionElement = document.getElementById("question"); // 질문 텍스트
+
+    if (questionElement) {
+        // "조명 추천 서비스를 재시작합니다" 문구 표시
+        questionElement.innerHTML = `
+            조명 추천 서비스를 재시작합니다. <br>
+        `;
+
+        // prepareAgeTestFadeOut 함수 실행
+        prepareAgeTestFadeOut("retry");
+
+    }
+}
+
+
+
+
+
 
 // 특정 요소 서서히 사라지기
 function fadeOutElements(elements, callback) {
@@ -229,6 +410,20 @@ function fadeOutElements(elements, callback) {
         }
     });
 }
+
+// 응답 완료된 질문을 체크 표시로 마킹
+function markQuestionAsAnswered(questionElement, questionId) {
+    if (!questionStatus.answeredQuestions.has(questionId)) {
+        // 상태 업데이트
+        questionStatus.answeredQuestions.add(questionId);
+
+        // 체크 표시 추가
+        if (questionElement) {
+            questionElement.innerHTML += " <span style='color: green;'>✔</span>";
+        }
+    }
+}
+
 
 // "오늘 날씨는 어때요?" 질문과 기타 질문 표시 함수
 function displaySequentialQuestions() {
@@ -330,7 +525,11 @@ function displaySequentialQuestions() {
 }
 
 function resetBackgroundColor() {
-    stopFlashingEffect();
+ 
+      // 모든 조명 효과 제거
+    const lightingEffects = document.querySelectorAll(".lighting-effect");
+    lightingEffects.forEach((effect) => effect.remove());
+
     document.body.style.backgroundColor = "white";
 
     // 모든 텍스트 요소의 색상을 검정색으로 변경
@@ -592,6 +791,7 @@ function applyLightingEffect(gradientColor) {
 }
 
 
+
 // 색상 원 렌더링 함수
 // 색상 원 렌더링 함수
 function createFloatingCircles() {
@@ -658,18 +858,71 @@ function createBudgetOptions() {
         const radio = document.createElement("input");
         radio.type = "radio";
         radio.id = `budget-${index}`;
-        radio.name = "budget";
+        radio.name = `question-${currentQuestionIndex}`; // 각 질문별 고유 name
         radio.value = budget;
 
         const label = document.createElement("label");
         label.htmlFor = `budget-${index}`;
         label.textContent = budget;
 
+        // 기존 응답 복원
+        if (responses[currentQuestionIndex] === budget) {
+            radio.checked = true;
+        }
+
+        // 응답 저장
+        radio.addEventListener("change", () => {
+            saveMultipleChoiceResponse(budget); // 객관식 응답 저장
+        });
+
         radioContainer.appendChild(radio);
         radioContainer.appendChild(label);
         answerContainer.appendChild(radioContainer);
     });
+
+    restorePreviousResponse();
 }
+
+
+function restorePreviousResponse() {
+    const currentResponse = responses[currentQuestionIndex];
+    if (!currentResponse) return; // 이전 응답이 없으면 리턴
+
+    if (currentQuestionIndex === 0) {
+        const fileInput = document.getElementById("file-answer");
+        const fileNameDisplay = document.getElementById("file-name");
+        if (fileInput && fileNameDisplay) {
+            fileNameDisplay.textContent = `선택된 파일: ${currentResponse}`;
+        }
+    } else if (currentQuestionIndex === 1) {
+        const circles = document.querySelectorAll(".circle");
+        circles.forEach((circle) => {
+            if (circle.dataset.label === currentResponse) {
+                circle.classList.add("selected");
+            }
+        });
+    } else if (currentQuestionIndex === 2) {
+        const widthInput = document.getElementById("width-input");
+        const heightInput = document.getElementById("height-input");
+        if (widthInput && heightInput) {
+            widthInput.value = currentResponse.width || "";
+            heightInput.value = currentResponse.height || "";
+        }
+    } else if (currentQuestionIndex === 5) {
+        const radios = document.querySelectorAll("input[name='budget']");
+        radios.forEach((radio) => {
+            if (radio.value === currentResponse) {
+                radio.checked = true;
+            }
+        });
+    } else if (currentQuestionIndex === 6) {
+        const input = document.getElementById("answer");
+        if (input) {
+            input.value = currentResponse || "";
+        }
+    }
+}
+
 
 
 // 다음 질문으로 이동
@@ -686,37 +939,29 @@ window.nextQuestion = async function () {
             // 이미 저장된 파일 이름이 있는 경우
             answer = responses[currentQuestionIndex];
         } else {
-            alert("답변을 입력하세요.");
+            alert("파일을 선택하세요.");
             return;
         }
     } else if (currentQuestionIndex === 1) {
         answer = responses[currentQuestionIndex];
         if (!answer) {
-            alert("답변을 선택해주세요.");
+            alert("원을 클릭해주세요.");
             return;
         }
-    } else if (currentQuestion.type === "text") {
-        const input = document.getElementById("text-answer");
-        if (input) {
-            answer = input.value.trim();
-            if (!answer) {
-                alert("답변을 입력해주세요.");
-                return;
+    } else if (currentQuestionIndex === 2 || currentQuestionIndex === 4 || currentQuestionIndex === 6){
+       answer = responses[currentQuestionIndex];
+       if (!answer) {
+            alert("답변을 입력하세요.");
+            return;
             }
-            responses[currentQuestionIndex] = answer; // 응답 저장
-        } else {
-            alert("답변 입력 필드가 없습니다.");
+   } else if (currentQuestionIndex === 5){
+       answer = responses[currentQuestionIndex];
+       if (!answer) {
+            alert("답변을 입력하세요.");
             return;
-        }
-    } else if (currentQuestion.type === "choice") {
-        const selectedOption = document.querySelector('input[name="choice"]:checked');
-        if (selectedOption) {
-            answer = selectedOption.value;
-        } else {
-            alert("답변을 선택해주세요.");
-            return;
-        }
-    }
+            }
+         }
+
 
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
