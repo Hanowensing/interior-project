@@ -7,6 +7,9 @@ const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2b2F1aHl2c3ludGdqZXBrcWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMyMDE2NzcsImV4cCI6MjA0ODc3NzY3N30.PzyKXN_ni8GTz7hAJsoGfGgCxmShwvQ4VZwdyf5k6Go";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+ let small_responses = [];
+console.log(small_responses); // []
+let number = 1; // 1부터 시작하는 인덱스
 
 // 질문 데이터 배열
 const questions = [
@@ -141,7 +144,6 @@ function showButtons() {
     if (nextButton) nextButton.style.display = 'inline-block'; // 혹은 'block'
 }
 
-
 function createFileInput() {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -158,25 +160,106 @@ function createFileInput() {
     fileNameDisplay.style.fontStyle = "italic";
     fileNameDisplay.style.color = "#555";
 
-    fileInput.addEventListener("change", () => {
+   // 랜덤 문자열을 보여줄 요소
+    const randomStringDisplay = document.createElement("p");
+    randomStringDisplay.id = "random-string";
+    randomStringDisplay.style.marginTop = "10px";
+    randomStringDisplay.style.fontWeight = "bold";
+    randomStringDisplay.style.color = "blue";
+
+    // 주관식 답변 입력 필드
+    const responseInput = document.createElement("input");
+    responseInput.type = "text";
+    responseInput.id = "response-input";
+    responseInput.placeholder = "화면에 표시된 확인 코드를 입력하세요";
+    responseInput.style.marginTop = "10px";
+    responseInput.style.display = "none"; // 초기에는 숨김 처리
+
+  fileInput.addEventListener("change", async () => {
         const file = fileInput.files[0];
         if (file) {
-            fileNameDisplay.textContent = `선택된 파일: ${file.name}`;
-            responses[currentQuestionIndex] = file.name; // 응답 저장
+        const uniqueFileName = generateUniqueFileName(file.name); // 고유 파일 이름 생성
+        const result = await uploadFileToSupabase(file, uniqueFileName);
+        const randomString = uniqueFileName.split("_")[1]; // "abc123";
+
+        if (result.success) {
+            const { fileUrl, randomString } = result;
+
+            // 파일 업로드 성공 메시지 및 랜덤 문자열 표시
+            fileNameDisplay.textContent = `파일 업로드 성공! 선택된 파일: ${file.name}`;
+         
+           if (currentQuestionIndex === 0) {
+        responses[0] = randomString; // responses[0]에 randomString 저장
+    } else {
+        responses[currentQuestionIndex] = randomString; // 현재 질문에 저장
+    }
+
+            console.log(responses[0]);
+
         } else {
-            fileNameDisplay.textContent = "";
-            responses[currentQuestionIndex] = ""; // 응답 초기화
+            // 파일 업로드 실패 메시지
+            fileNameDisplay.textContent = `파일 업로드 실패: ${result.error}`;
+            randomStringDisplay.style.display = "none"; // 숨김
+            responseInput.style.display = "none"; // 숨김
+            responses[currentQuestionIndex] = ""; // 초기화
         }
-    });
+    } else {
+        // 파일 선택 취소 시 초기화
+        fileNameDisplay.textContent = "";
+        randomStringDisplay.style.display = "none"; // 숨김
+        responseInput.style.display = "none"; // 숨김
+        responses[currentQuestionIndex] = "";
+    }
+});
 
     answerContainer.appendChild(fileLabel);
     answerContainer.appendChild(fileInput);
     answerContainer.appendChild(fileNameDisplay);
+    answerContainer.appendChild(randomStringDisplay);
+    answerContainer.appendChild(responseInput);
 
     // 이전 응답 복원
     restorePreviousResponse();
-    
 }
+
+
+async function uploadFileToSupabase(file, uniqueFileName) {
+    const bucketName = "uploads"; // Supabase 버킷 이름
+
+    // 고유 파일 이름 생성
+    const filePath = `user_uploads/${uniqueFileName}`; // 고유한 경로 생성
+
+    // 파일 업로드
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file);
+
+    if (error) {
+        console.error("파일 업로드 실패:", error);
+        return null;
+    }
+
+    // 파일 URL 생성 (공개 저장소일 경우)
+    const fileUrl = `https://${supabaseUrl}/storage/v1/object/public/${bucketName}/${filePath}`;
+    const randomString = uniqueFileName.split("_")[1]; // 고유 문자열 추출
+
+    return { success: true, fileUrl, randomString };
+}
+
+// 고유 파일 이름 생성 함수
+function generateUniqueFileName(originalFileName) {
+    const timestamp = Date.now(); // 현재 타임스탬프
+    const randomString = Math.random().toString(36).substring(2, 8); // 랜덤 문자열
+    const sanitizedFileName = sanitizeFileName(originalFileName); // 파일 이름 정리
+    return `${timestamp}_${randomString}_${sanitizedFileName}`;
+}
+
+// 파일 이름 정리 함수
+function sanitizeFileName(fileName) {
+    return fileName.replace(/[^a-zA-Z0-9.\-_]/g, "_"); // 허용되지 않는 문자 "_"로 대체
+}
+
+
 
 
 // 마지막 질문 추가 함수
@@ -185,9 +268,10 @@ function displayFinalMessage() {
     const finalMessage = `
         저희 서비스를 이용해주셔서 감사합니다.<br>
         보내주신 정보들을 기반으로 인테리어 추천 결과물을 보내드리겠습니다.<br><br>
-        비용은 1000원이며 아래 계좌로 입금해주시면 확인 후 2~3일 내로 결과물이 이메일로 전송됩니다.<br>
+        베타 서비스 기간인 현재 인테리어 의뢰 비용은 1000원입니다. <br>
+        아래 계좌로 입금해주시면 확인 후 1~3일 내로 결과물이 이메일로 전송됩니다.<br>
        농협 356-1488-8305-13 (예금주 한형준) <br><br>
-       해당 결과물에 대한 수정은 2회 가능합니다 <br>
+       해당 결과물에 대한 수정은 1회 가능합니다 <br>
        수정을 원하실 경우 저희 인스타 DM으로 수정 요청을 부탁드리겠습니다.<br>
        인스타 ID: 1terior_<br><br>
        낮은 가격에 큰 기쁨을 드리도록 노력하겠습니다. 감사합니다.
@@ -203,6 +287,11 @@ function displayFinalMessage() {
     // CSS 스타일 추가 (중앙 정렬 및 위치 조정)
     questionElement.style.marginTop = "-25px"; // 30px 위로 올림
     questionElement.style.textAlign = "center"; // 중앙 정렬
+    questionElement.style.fontSize = "24px";
+    questionElement.style.fontWeight = "bold";
+    questionElement.style.marginBottom = "20px";
+    questionElement.style.textAlign = "center";
+
 
     answerContainer.style.textAlign = "center"; // 중앙 정렬
     answerContainer.style.margin = "0 auto"; // 가운데 정렬
@@ -524,6 +613,8 @@ function displaySequentialQuestions() {
     showQuestion(currentQuestionIndex);
 }
 
+
+
 function resetBackgroundColor() {
  
       // 모든 조명 효과 제거
@@ -613,63 +704,70 @@ function resetBackgroundColor() {
             if (!selectedOption) {
                 alert("답변을 선택해주세요.");
                 return;
+              currentQuestionIndex++;
+    showQuestion(currentQuestionIndex);
             }
 
-            const selectedValue = selectedOption.value;
+           const selectedValue = selectedOption.value;
+    responses.push(selectedValue); // 응답 저장
+  
 
             // 각 질문에 대한 조명 효과 및 알림 처리
             if (index === 0) {
                 if (selectedValue === "3권 미만") {
-                    alert("책을 읽고 싶게 만들어드리겠습니다. 빨간색이 독서활동 증진에 효과가 있습니다!");
+                    alert("책을 읽고 싶게 만드는 조명을 추천드리겠습니다!");
                     applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 100, 100, 0.4) 0%, rgba(255, 100, 100, 0) 100%)");
                 } else if (selectedValue === "3~10권") {
-                    alert("적절한 독서는 인생을 변화시킵니다. 흰색은 과도한 자극 없이 독서 활동을 도와줍니다!");
+                    alert("과도한 자극 없이 독서 활동을 도와주는 조명을 추천드리겠습니다!");
                     applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
                 } else if (selectedValue === "10권 이상") {
-                    alert("책을 정말 잘 읽는 당신이 대단합니다. 노란색은 당신의 눈의 피로를 풀어줍니다.");
+                    alert("피로해진 눈을 풀어주는 조명을 추천드리겠습니다!");
                     applySmoothFlashingEffect("linear-gradient(to bottom, rgba(255, 255, 0, 0.4) 0%, rgba(255, 255, 0, 0) 100%)");
                 }
+         small_responses.push(selectedValue); // 응답 추가
             } 
 
 else if (index === 1) {
                 if (selectedValue === "3번 미만") {
-                    alert("집에서 친구를 부르는 비율이 낮으시군요. 은은한 노란색으로 집을 따뜻하게 만들어드립니다!");
+                    alert("집을 소중히 여기는 마음을 반영하여 조명을 추천드립니다!");
                     applySmoothFlashingEffect("linear-gradient(to left, rgba(255, 255, 150, 0.4) 0%, rgba(255, 255, 150, 0) 100%)");
                 } else if (selectedValue === "3~10번") {
-                    alert("친구들이 간간히 집에 오는군요. 연한 하늘색으로 친구들이 왔을 때 편안함을 줄 수 있습니다.");
+                    alert("친구들이 왔을 때 편안함을 줄 수 있는 조명을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to left, rgba(173, 216, 230, 0.4) 0%, rgba(173, 216, 230, 0) 100%)");
                 } else if (selectedValue === "11번 이상") {
-                    alert("친구들이 꽤 자주 오시네요. 연한 주황색 조명이 따뜻함을 줄 수 있습니다.");
+                    alert("집 전체적으로 따뜻함을 줄 수 있는 조명을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to left, rgba(255, 200, 150, 0.4) 0%, rgba(255, 200, 150, 0) 100%)");
-                }                 
+                }              
+ small_responses.push(selectedValue); // 응답 추가   
             } 
 else if (index === 2) {
                 if (selectedValue === "30% 미만") {
-                    alert("집에서 주로 잠을 주무시는 동안이라도 편히 쉬실 수 있는 연한 핑크색을 추천드립니다.");
+                    alert("집에서 주로 잠을 주무시는 동안이라도 편히 쉬실 수 있는 조명을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 150, 150, 0.4) 0%, rgba(255, 150, 150, 0) 100%)");
                 } else if (selectedValue === "30% ~70%") {
-                    alert("집에 있는 시간 동안 편안하게 쉴 수 있는 연한 노란색을 추천드립니다");
+                    alert("집에 있는 시간 동안 편안하게 쉴 수 있는 조명을 추천드립니다");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(255, 255, 200, 0.4) 0%, rgba(255, 255, 200, 0) 100%)");
                 } else if (selectedValue === "70% 초과") {
-                    alert("꽤 많은 시간을 집에서 보내시는군요. 안락한 환경을 위한 연한 회색을 추천드립니다.");
+                    alert("꽤 많은 시간을 집에서 보내시는군요. 안락한 환경을 위한 조명을 추천드립니다");
                     applySmoothFlashingEffect("linear-gradient(to top, rgba(200, 200, 200, 0.4) 0%, rgba(200, 200, 200, 0) 100%)");
                 } 
+small_responses.push(selectedValue); // 응답 추가
           
             } else if (index === 3) {
                 if (selectedValue === "거의 없음(4회 미만)") {
-                    alert("불면증 없이 잘 주무신다니 좋습니다! 편안한 흰색 조명을 추천드립니다.");
+                    alert("불면증 없이 잘 주무신다니 좋습니다! 더욱 더 편안한 조명색을 추천드립니다. ");
                     applySmoothFlashingEffect("linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)");
                 } else if (selectedValue === "보통임(4~10회)") {
-                    alert("가끔 불면증이 있으시군요. 편안한 푸른빛을 추천드립니다.");
+                    alert("가끔 불면증이 있으시군요. 편안한 푸른빛을 추천 조명에 추가하겠습니다.");
                     applySmoothFlashingEffect("linear-gradient(to right, rgba(173, 216, 230, 0.4) 0%, rgba(173, 216, 230, 0) 100%)");
                 } else if (selectedValue === "자주 그럼(11회 이상)") {
-                    alert("불면증으로 고생하시는군요. 차분한 어두운 푸른 조명을 추천드립니다.");
+                    alert("불면증으로 고생하시는군요. 숙면에 좋은 조명을 추천드립니다.");
                     applySmoothFlashingEffect("linear-gradient(to right, rgba(50, 100, 150, 0.4) 0%, rgba(50, 100, 150, 0) 100%)");
                 } 
+small_responses.push(selectedValue); // 응답 추가
             }
 
-            // 응답 저장
-            responses[index] = selectedValue;
+console.log(small_responses);
 
             // 다음 질문으로 이동
             currentQuestionIndex++;
@@ -716,6 +814,8 @@ resetButton.onclick = () => {
 };
 
 
+
+
 resetButton.style.fontSize = "80%";
 resetButton.style.transform = "scale(1.2)"; // 크기를 50% 증가
 resetButton.style.whiteSpace = "pre-wrap"; // 텍스트 줄바꿈 설정
@@ -755,10 +855,9 @@ topLeftContainer.appendChild(dreamlandButton);
 
     // 첫 번째 질문 표시
     showQuestion(currentQuestionIndex);
+
+       return small_responses
 }
-
-
-
 
 
 
@@ -930,32 +1029,61 @@ window.nextQuestion = async function () {
     const currentQuestion = questions[currentQuestionIndex];
 
     let answer;
+
     if (currentQuestionIndex === 0) {
         const fileInput = document.getElementById("file-answer");
+
+        // 파일 선택 확인
         if (fileInput && fileInput.files.length > 0) {
-            answer = fileInput.files[0].name;
-            responses[currentQuestionIndex] = answer; // 응답 저장
-        } else if (responses[currentQuestionIndex]) {
-            // 이미 저장된 파일 이름이 있는 경우
-            answer = responses[currentQuestionIndex];
+            const file = fileInput.files[0];
+            const fileName = file.name;
+
         } else {
             alert("파일을 선택하세요.");
             return;
         }
+
+
     } else if (currentQuestionIndex === 1) {
         answer = responses[currentQuestionIndex];
+        console.log(answer)
         if (!answer) {
             alert("원을 클릭해주세요.");
             return;
         }
     } else if (currentQuestionIndex === 2 || currentQuestionIndex === 4 || currentQuestionIndex === 6){
        answer = responses[currentQuestionIndex];
+       console.log(answer)
        if (!answer) {
             alert("답변을 입력하세요.");
             return;
+            } else if (currentQuestionIndex === 3) {
+        // 소질문 처리 로직
+        const subQuestions = document.querySelectorAll(`[data-sub-question="${currentQuestionIndex}"]`);
+        const subAnswers = [];
+
+        subQuestions.forEach((subQuestion) => {
+            const selectedOption = subQuestion.querySelector("input:checked");
+            if (selectedOption) {
+                subAnswers.push(selectedOption.value);
             }
+        });
+
+        if (subAnswers.length === 0) {
+            alert("소질문에 답변하세요.");
+            return;
+        }
+
+        // 소질문 응답을 배열로 responses에 저장
+        responses[currentQuestionIndex] = subAnswers;
+        console.log(`소질문 응답:`, subAnswers);
+    }
    } else if (currentQuestionIndex === 5){
        answer = responses[currentQuestionIndex];
+       responses[3] = small_responses
+       console.log(answer)
+       console.log(responses[3])
+       
        if (!answer) {
             alert("답변을 입력하세요.");
             return;
@@ -963,15 +1091,16 @@ window.nextQuestion = async function () {
          }
 
 
-    if (currentQuestionIndex < questions.length - 1) {
+     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
         updateQuestion();
     } else {
+        // Supabase로 데이터 저장
         const payload = {
             house: responses[0],
-            gender: responses[1],
-            age: responses[2],
-            favorite_color: responses[3],
+            color: responses[1],
+            measurement: responses[2],
+            light: responses[3],
             budget: responses[4],
             furniture_preferences: responses[5],
         };
